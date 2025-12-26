@@ -1,35 +1,75 @@
 <aside class="w-64 hidden md:flex flex-col bg-white border-r border-slate-200">
-    <div class="h-16 px-4 flex items-center gap-2 border-b border-slate-200">
-        <div class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold">S</div>
+    <!-- Header / Logo -->
+    <div class="h-16 px-6 flex items-center gap-3 border-b border-slate-200">
+        <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-md">
+            🏸
+        </div>
         <div>
-            <div class="font-semibold leading-5">Shop Admin</div>
-            <div class="text-xs text-slate-500">Dashboard</div>
+            <div class="font-bold text-lg leading-5">Badminton Pro</div>
+            <div class="text-xs text-slate-500">Quản trị cửa hàng</div>
         </div>
     </div>
 
-    <nav class="p-3 space-y-1">
-        <a href="/admin" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100">
-            <span>🏠</span><span class="text-sm font-medium">Tổng quan</span>
+    <!-- Navigation Menu -->
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+        <a href="/admin" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin') || request()->is('admin/dashboard') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">📊</span>
+            <span class="font-medium">Tổng quan</span>
         </a>
 
-        <a href="/admin/products" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100">
-            <span>🛍️</span><span class="text-sm font-medium">Sản phẩm</span>
+        <a href="/admin/products" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/products*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">🛍️</span>
+            <span class="font-medium">Sản phẩm</span>
+        </a>
+        <a href="/admin/category/index" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/customers*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">👥</span>
+            <span class="font-medium">Danh mục</span>
+        </a>
+        <a href="/admin/brand/index" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/customers*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">👥</span>
+            <span class="font-medium">Hãng</span>
         </a>
 
-        <a href="/admin/orders" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100">
-            <span>🧾</span><span class="text-sm font-medium">Đơn hàng</span>
+        <a href="/admin/order/index" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/orders*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">🧾</span>
+            <span class="font-medium">Đơn hàng</span>
         </a>
 
-        <div class="pt-3 mt-3 border-t border-slate-200">
-            <a href="#" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-500">
-                <span>⚙️</span><span class="text-sm font-medium">Cài đặt (tạm)</span>
+        <a href="/admin/customer/index" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/customers*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">👥</span>
+            <span class="font-medium">Khách hàng</span>
+        </a>
+
+        <a href="/admin/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/inventory*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">📦</span>
+            <span class="font-medium">Kho hàng</span>
+        </a>
+
+        <a href="/admin/reports" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/reports*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+            <span class="text-lg group-hover:scale-110 transition-transform">📈</span>
+            <span class="font-medium">Báo cáo</span>
+        </a>
+
+        <!-- Phần cài đặt (có thể thêm sau) -->
+        <div class="pt-4 mt-4 border-t border-slate-200">
+            <a href="/admin/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-colors text-slate-600 <?= request()->is('admin/settings*') ? 'bg-slate-100 font-semibold' : '' ?>">
+                <span class="text-lg">⚙️</span>
+                <span class="font-medium">Cài đặt</span>
             </a>
         </div>
     </nav>
 
-    <div class="mt-auto p-3 border-t border-slate-200">
-        <button class="w-full px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:opacity-90">
-            Đăng xuất (tạm)
-        </button>
+    <!-- Footer - Đăng xuất -->
+    <div class="mt-auto p-4 border-t border-slate-200">
+        <a href="/logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" 
+           class="w-full px-4 py-3 rounded-xl bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-md">
+            <span>🚪</span>
+            Đăng xuất
+        </a>
+        
+        <!-- Form ẩn để submit logout (nếu dùng Laravel) -->
+        <form id="logout-form" action="/logout" method="POST" class="hidden">
+            @csrf
+        </form>
     </div>
 </aside>

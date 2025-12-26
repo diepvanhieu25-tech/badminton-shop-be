@@ -9,5 +9,4 @@ Route::get('/admin/products', fn() => view('admin.products.index'));
 Route::get('/admin/products/create', fn() => view('admin.products.create'));
 Route::get('/admin/products/{id}/edit', fn() => view('admin.products.edit'));
 
-Route::get('/admin/orders', fn() => view('admin.orders.index'));
 Route::get('/admin/orders/{id}', fn() => view('admin.orders.show'));

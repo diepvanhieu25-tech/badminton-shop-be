@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="flex items-center justify-between">
-    <div class="text-sm text-slate-500">Quản lý sản phẩm (UI tĩnh)</div>
+    <div class="text-sm text-slate-500">Quản lý sản phẩm </div>
     <a href="/admin/products/create" class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:opacity-90">
         + Thêm sản phẩm
     </a>
@@ -36,7 +36,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y">
-                <tr>
+                <tr >
                     <td class="py-3 px-4">
                         <div class="font-semibold">Vợt cầu lông A</div>
                         <div class="text-xs text-slate-500">Danh mục: Vợt</div>
