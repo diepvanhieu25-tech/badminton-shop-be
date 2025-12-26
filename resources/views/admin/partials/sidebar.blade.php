@@ -25,11 +25,4 @@
                 <span>⚙️</span><span class="text-sm font-medium">Cài đặt (tạm)</span>
             </a>
         </div>
-    </nav>
-
-    <div class="mt-auto p-3 border-t border-slate-200">
-        <button class="w-full px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:opacity-90">
-            Đăng xuất (tạm)
-        </button>
     </div>
-</aside>
