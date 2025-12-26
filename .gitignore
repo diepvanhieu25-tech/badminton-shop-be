@@ -1,50 +1,45 @@
 # =====================
-# OS / Editor
+# OS / Editor (Giữ nguyên)
 # =====================
 .DS_Store
 Thumbs.db
-/.idea
-/.vscode
-/.fleet
-/.nova
-/.zed
+.idea
+.vscode
 
 # =====================
 # Env
 # =====================
-.env
-.env.*
-!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # =====================
-# Logs / Cache
+# Logs / Cache (Thêm backend/)
 # =====================
-*.log
-.phpunit.result.cache
-/.phpunit.cache
+backend/*.log
+backend/.phpunit.result.cache
+backend/.phpunit.cache
 
 # =====================
-# Laravel
+# Laravel (Thêm backend/)
 # =====================
-/vendor
-/node_modules
+backend/vendor/
+backend/node_modules/
 
-/storage/logs/*
-/storage/framework/*
-/storage/app/*
-!/storage/app/public
+backend/storage/logs/*
+backend/storage/framework/*
+backend/storage/app/*
+!backend/storage/app/public
 
-/public/storage
-/public/build
-/public/hot
-
-# =====================
-# Auth / Secrets
-# =====================
-/auth.json
+backend/public/storage
+backend/public/build
+backend/public/hot
 
 # =====================
-# Homestead
+# Next.js (Phần FE của bạn)
 # =====================
-Homestead.json
-Homestead.yaml
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/.env.production
+frontend/build/
