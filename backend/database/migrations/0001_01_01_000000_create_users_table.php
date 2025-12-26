@@ -20,13 +20,14 @@ return new class extends Migration
             // --- SỬA ĐỔI CHO PROJECT BÁN HÀNG ---
             $table->string('password')->nullable(); // Cho phép null để login Google/FB
             $table->string('phone')->nullable();    // Thêm số điện thoại
-            $table->string('avatar_url')->nullable(); // Thêm ảnh đại diện
+            $table->text('avatar_url')->nullable(); // Thêm ảnh đại diện
             $table->enum('role', ['admin', 'customer'])->default('customer'); // Phân quyền
             $table->enum('status', ['active', 'inactive', 'banned'])->default('active'); // Trạng thái
             // -------------------------------------
 
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
