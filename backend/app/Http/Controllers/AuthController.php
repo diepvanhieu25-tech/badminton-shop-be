@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\SocialLoginRequest;
 use Illuminate\Http\Request;
 use App\Services\AuthService;
 use App\Http\Resources\UserResource;
@@ -49,7 +50,34 @@ class AuthController extends Controller
                 'message' => $result['message'],
             ], $result['status']);
         }
-        
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đăng nhập thành công',
+            'data' => [
+                'user' => new UserResource($result['user']),
+                'access_token' => $result['token'],
+                'token_type' => 'Bearer',
+            ]
+        ], 200);
+    }
+
+    public function socialLogin(SocialLoginRequest $request): JsonResponse
+    {
+        // 2. Dữ liệu đã được validate ở SocialLoginRequest
+        $validatedData = $request->validated();
+
+        // 3. Gọi Service
+        $result = $this->authService->loginWithSocial($validatedData);
+
+        // 4. Trả về kết quả
+        if (! $result['ok']) {
+            return response()->json([
+                'success' => false,
+                'message' => $result['message'],
+            ], $result['status']);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Đăng nhập thành công',
