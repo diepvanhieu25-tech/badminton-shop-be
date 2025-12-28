@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Repositories\Eloquent\BrandRepository;
+use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
+use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
             BrandRepositoryInterface::class,
             BrandRepository::class
         );
+        $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
     }
 
     /**
