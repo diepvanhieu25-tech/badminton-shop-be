@@ -40,24 +40,14 @@
             <span class="font-medium">Khách hàng</span>
         </a>
 
-        <a href="/admin/inventory" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/inventory*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
-            <span class="text-lg group-hover:scale-110 transition-transform">📦</span>
-            <span class="font-medium">Kho hàng</span>
-        </a>
+       
 
-        <a href="/admin/reports" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/reports*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+        <a href="/admin/report" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/reports*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
             <span class="text-lg group-hover:scale-110 transition-transform">📈</span>
             <span class="font-medium">Báo cáo</span>
         </a>
 
-        <!-- Phần cài đặt (có thể thêm sau) -->
-        <div class="pt-4 mt-4 border-t border-slate-200">
-            <a href="/admin/settings" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 transition-colors text-slate-600 <?= request()->is('admin/settings*') ? 'bg-slate-100 font-semibold' : '' ?>">
-                <span class="text-lg">⚙️</span>
-                <span class="font-medium">Cài đặt</span>
-            </a>
-        </div>
-    </nav>
+     </nav>
 
     <!-- Footer - Đăng xuất -->
     <div class="mt-auto p-4 border-t border-slate-200">
@@ -67,8 +57,7 @@
             Đăng xuất
         </a>
         
-        <!-- Form ẩn để submit logout (nếu dùng Laravel) -->
-        <form id="logout-form" action="/logout" method="POST" class="hidden">
+         <form id="logout-form" action="/logout" method="POST" class="hidden">
             @csrf
         </form>
     </div>
