@@ -36,7 +36,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y">
-                <tr >
+                <tr onclick="window.location.href='/admin/products/detail'">
                     <td class="py-3 px-4">
                         <div class="font-semibold">Vợt cầu lông A</div>
                         <div class="text-xs text-slate-500">Danh mục: Vợt</div>

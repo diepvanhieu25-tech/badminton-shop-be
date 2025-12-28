@@ -53,7 +53,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition">
+                <tr class="hover:bg-slate-50 transition" onclick="window.location.href='/admin/order/detail'">
                     <td class="py-4 px-6">
                         <div class="font-semibold text-emerald-700">#ORD-20241226-001</div>
                         <div class="text-xs text-slate-500">15:42, 26/12/2025</div>

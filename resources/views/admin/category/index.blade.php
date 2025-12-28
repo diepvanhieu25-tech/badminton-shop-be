@@ -38,7 +38,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition">
+                <tr class="hover:bg-slate-50 transition" onclick="window.location.href='/admin/category/detail'">
                     <td class="py-4 px-6">
                         <div class="font-semibold">Vợt cầu lông</div>
                         <div class="text-xs text-slate-500 mt-1">Danh mục chính</div>

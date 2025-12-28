@@ -34,7 +34,7 @@
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition">
+                <tr class="hover:bg-slate-50 transition" onclick="window.location.href='/admin/brand/detail'">
                     <td class="py-4 px-6">
                         <img src="https://via.placeholder.com/80x40?text=Yonex" alt="Yonex"
                              class="h-10 object-contain rounded border border-slate-200" />
