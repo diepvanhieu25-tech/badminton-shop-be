@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
@@ -11,3 +12,8 @@ Route::get('/admin/products/{id}/edit', fn() => view('admin.products.edit'));
 
 Route::get('/admin/orders', fn() => view('admin.orders.index'));
 Route::get('/admin/orders/{id}', fn() => view('admin.orders.show'));
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    // Tự động tạo các route: index, create, store, edit, update, destroy
+    Route::resource('products', ProductController::class);
+});

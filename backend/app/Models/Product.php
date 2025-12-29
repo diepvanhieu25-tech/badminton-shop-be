@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ProductStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,7 +21,7 @@ class Product extends Model
         'description',
         'price',
         'original_price',
-        'status',
+        'status' => ProductStatus::class,
         'has_variants',
         'is_featured',
     ];

@@ -1,14 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\Api\ForgotPasswordRequest;
+use App\Http\Requests\Api\ResetPasswordRequest;
+use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\SocialLoginRequest;
 use Illuminate\Http\Request;
 use App\Services\AuthService;
 use App\Http\Resources\UserResource;
+use Exception;
 use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
@@ -97,5 +101,44 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Đăng xuất thành công',
         ], 200);
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request)
+    {
+        try {
+            $result = $this->authService->forgotPassword($request->validated());
+            return response()->json(['success' => true, 'message' => $result['message']]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function resetPassword(ResetPasswordRequest $request)
+    {
+        try {
+            $result = $this->authService->resetPassword($request->validated());
+            return response()->json(['success' => true, 'message' => $result['message']]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
+        }
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        try {
+            // Lấy toàn bộ dữ liệu đã validate
+            // (bao gồm cả file object nếu có)
+            $data = $request->validated();
+
+            $user = $this->authService->updateProfile($data);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cập nhật thông tin thành công',
+                'data' => $user
+            ]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }
