@@ -2,14 +2,21 @@
 
 namespace App\Services;
 
+use App\Enums\UserRole;
+use App\Enums\UserStatus;
+use App\Mail\SendOtpMail;
 use App\Models\User;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Socialite\Socialite;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class AuthService
 {
@@ -24,26 +31,83 @@ class AuthService
     {
         DB::beginTransaction();
         try {
-            // 1. Hash mật khẩu
-            $data['password'] = Hash::make($data['password']);
 
-            // 2. Gọi Repository để tạo user
-            $user = $this->userRepository->create($data);
+            $data['role'] = UserRole::CUSTOMER;
 
-            // 3. Tạo token (Sanctum) ngay sau khi đăng ký để login luôn
+            $data['status'] = UserStatus::ACTIVE;
+
+            $user = User::create($data);
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
             DB::commit();
 
-            return [
-                'user' => $user,
-                'token' => $token
-            ];
+            return ['user' => $user, 'token' => $token];
         } catch (Exception $e) {
             DB::rollBack();
-            Log::error('Lỗi đăng ký: ' . $e->getMessage());
             throw $e;
         }
+    }
+
+    public function forgotPassword(array $data)
+    {
+        $email = $data['email'];
+
+        // 1. Tạo Key định danh cho email này (Ví dụ: otp_reset_nguyenvana@gmail.com)
+        $cacheKey = 'otp_reset_' . $email;
+
+        // 2. (Optional) Chặn spam: Kiểm tra xem vừa gửi chưa?
+        if (Cache::has($cacheKey)) {
+            throw new Exception('Mã OTP cũ vẫn còn hiệu lực. Vui lòng chờ 60s để gửi lại.');
+        }
+        
+        // 3. Sinh OTP
+        $otp = rand(100000, 999999);
+
+        // 4. Lưu vào Cache: Key, Value, Thời gian (giây)
+        // Sau 60s, Laravel tự động xóa key này đi.
+        Cache::put($cacheKey, $otp, 60);
+
+        // 5. Gửi Mail
+        Mail::to($email)->send(new SendOtpMail($otp));
+
+        return ['status' => true, 'message' => 'Mã OTP đã gửi. Hết hạn sau 60 giây.'];
+    }
+
+    /**
+     * Xác thực OTP dùng Cache
+     */
+    public function resetPassword(array $data)
+    {
+        $email = $data['email'];
+        $otpInput = $data['otp'];
+        $newPassword = $data['password'];
+
+        $cacheKey = 'otp_reset_' . $email;
+
+        // 1. Lấy OTP từ Cache
+        $cachedOtp = Cache::get($cacheKey);
+
+        // 2. Kiểm tra logic
+        // Nếu $cachedOtp là null => Tức là đã qua 60s, cache tự xóa rồi
+        if (!$cachedOtp) {
+            throw new Exception('Mã OTP đã hết hạn hoặc không tồn tại.');
+        }
+
+        // Kiểm tra khớp mã
+        if ((string)$cachedOtp !== (string)$otpInput) {
+            throw new Exception('Mã OTP không chính xác.');
+        }
+
+        // 3. Đổi mật khẩu
+        $user = User::where('email', $email)->first();
+        $user->password = $newPassword; // Model đã cast 'hashed'
+        $user->save();
+
+        // 4. Quan trọng: Xóa ngay OTP trong Cache để không dùng lại được lần 2
+        Cache::forget($cacheKey);
+
+        return ['status' => true, 'message' => 'Đổi mật khẩu thành công.'];
     }
 
     public function login(array $data)
@@ -150,5 +214,44 @@ class AuthService
         }
 
         return true;
+    }
+
+    public function updateProfile(array $data)
+    {
+        $userId = Auth::user(); // Lấy user đang đăng nhập
+        $user = User::findOrFail($userId);
+
+        // 1. Xử lý Avatar (Nếu có gửi file ảnh lên)
+        if (isset($data['avatar']) && $data['avatar']->isValid()) {
+            // Xóa ảnh cũ nếu có (trừ ảnh mặc định nếu bạn có set)
+            if ($user->avatar_url && Storage::disk('public')->exists($user->avatar_url)) {
+                Storage::disk('public')->delete($user->avatar_url);
+            }
+
+            // Lưu ảnh mới vào thư mục 'avatars' trong storage/app/public
+            // Nó sẽ trả về đường dẫn: "avatars/ten_file_ngau_nhien.jpg"
+            $path = $data['avatar']->store('avatars', 'public');
+            
+            // Cập nhật đường dẫn vào data để lưu DB
+            $user->avatar_url = $path;
+        }
+
+        // 2. Xử lý Password (Nếu có gửi password mới)
+        if (!empty($data['password'])) {
+            // Model User của bạn đã có cast 'hashed' nên gán trực tiếp, không cần Hash::make
+            $user->password = $data['password'];
+        }
+
+        // 3. Cập nhật các thông tin cơ bản khác (chỉ cập nhật nếu có dữ liệu)
+        if (!empty($data['name'])) {
+            $user->name = $data['name'];
+        }
+        if (!empty($data['phone'])) {
+            $user->phone = $data['phone'];
+        }
+
+        $user->save();
+
+        return $user;
     }
 }

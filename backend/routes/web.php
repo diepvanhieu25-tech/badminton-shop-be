@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Admin\BrandController;
 use Illuminate\Support\Facades\Route;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -11,3 +13,11 @@ Route::get('/admin/products/{id}/edit', fn() => view('admin.products.edit'));
 
 Route::get('/admin/orders', fn() => view('admin.orders.index'));
 Route::get('/admin/orders/{id}', fn() => view('admin.orders.show'));
+
+
+
+Route::prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('brands', BrandController::class)->except(['show']);
+    });

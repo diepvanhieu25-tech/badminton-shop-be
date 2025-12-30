@@ -1,88 +1,90 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin - Sản phẩm')
-@section('page_title', 'Sản phẩm')
+@section('title', 'Quản lý sản phẩm')
 
 @section('content')
-<div class="flex items-center justify-between">
-    <div class="text-sm text-slate-500">Quản lý sản phẩm </div>
-    <a href="/admin/products/create" class="px-3 py-2 rounded-lg bg-slate-900 text-white text-sm font-semibold hover:opacity-90">
-        + Thêm sản phẩm
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-slate-800">Sản phẩm</h1>
+    <a href="{{ route('admin.products.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+        Thêm mới
     </a>
 </div>
 
-<div class="mt-4 bg-white rounded-xl border border-slate-200 overflow-hidden">
-    <div class="p-4 border-b border-slate-200 flex gap-2">
-        <input class="w-full md:w-96 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50"
-               placeholder="Tìm sản phẩm (tạm)" />
-        <select class="px-3 py-2 rounded-lg border border-slate-200 bg-white">
-            <option>Tất cả trạng thái</option>
-            <option>Active</option>
-            <option>Draft</option>
-            <option>Inactive</option>
-        </select>
+@if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+        <span class="block sm:inline">{{ session('success') }}</span>
     </div>
+@endif
 
+<div class="bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200">
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="text-slate-500">
-                <tr class="border-b">
-                    <th class="py-3 px-4 text-left font-medium">Sản phẩm</th>
-                    <th class="py-3 px-4 text-left font-medium">SKU</th>
-                    <th class="py-3 px-4 text-left font-medium">Giá</th>
-                    <th class="py-3 px-4 text-left font-medium">Tồn</th>
-                    <th class="py-3 px-4 text-left font-medium">Trạng thái</th>
-                    <th class="py-3 px-4 text-right font-medium">Hành động</th>
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b">
+                <tr>
+                    <th class="px-6 py-3 font-semibold">Sản phẩm</th>
+                    <th class="px-6 py-3 font-semibold">Giá</th>
+                    <th class="px-6 py-3 font-semibold">Trạng thái</th>
+                    <th class="px-6 py-3 font-semibold text-right">Hành động</th>
                 </tr>
             </thead>
-            <tbody class="divide-y">
-                <tr onclick="window.location.href='/admin/products/detail'">
-                    <td class="py-3 px-4">
-                        <div class="font-semibold">Vợt cầu lông A</div>
-                        <div class="text-xs text-slate-500">Danh mục: Vợt</div>
+            <tbody>
+                @forelse($products as $product)
+                <tr class="bg-white border-b hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 flex items-center gap-4">
+                        @if($product->thumbnail)
+                            <img class="w-12 h-12 rounded object-cover border" src="{{ Storage::url($product->thumbnail) }}" alt="{{ $product->name }}">
+                        @else
+                            <div class="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-xs text-slate-400">No Img</div>
+                        @endif
+                        <div>
+                            <div class="font-medium text-slate-900">{{ $product->name }}</div>
+                            <div class="text-xs text-slate-500">SKU: {{ $product->sku ?? 'N/A' }}</div>
+                        </div>
                     </td>
-                    <td class="py-3 px-4">SKU-A-001</td>
-                    <td class="py-3 px-4">1,200,000₫</td>
-                    <td class="py-3 px-4">24</td>
-                    <td class="py-3 px-4"><x-badge text="Active" tone="success"/></td>
-                    <td class="py-3 px-4 text-right">
-                        <a href="/admin/products/1/edit" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Sửa</a>
+                    <td class="px-6 py-4 font-medium text-slate-900">
+                        {{ number_format($product->price) }} đ
+                        @if($product->original_price)
+                            <br><span class="text-xs text-slate-400 line-through">{{ number_format($product->original_price) }} đ</span>
+                        @endif
+                    </td>
+                    <td class="px-6 py-4">
+                        @php
+                            $statusColors = [
+                                'active' => 'bg-green-100 text-green-800',
+                                'draft' => 'bg-gray-100 text-gray-800',
+                                'inactive' => 'bg-red-100 text-red-800',
+                            ];
+                            $color = $statusColors[$product->status->value] ?? 'bg-gray-100 text-gray-800';
+                        @endphp
+                        <span class="{{ $color }} text-xs font-medium px-2.5 py-0.5 rounded-full border border-opacity-20">
+                            {{ ucfirst($product->status->value) }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ route('admin.products.edit', $product) }}" class="font-medium text-blue-600 hover:underline">Sửa</a>
+                        <form action="{{ route('admin.products.destroy', $product) }}" method="POST" class="inline-block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="font-medium text-red-600 hover:underline">Xóa</button>
+                        </form>
                     </td>
                 </tr>
-
+                @empty
                 <tr>
-                    <td class="py-3 px-4">
-                        <div class="font-semibold">Giày B</div>
-                        <div class="text-xs text-slate-500">Danh mục: Giày</div>
-                    </td>
-                    <td class="py-3 px-4">SKU-B-003</td>
-                    <td class="py-3 px-4">890,000₫</td>
-                    <td class="py-3 px-4">3</td>
-                    <td class="py-3 px-4"><x-badge text="Low stock" tone="warning"/></td>
-                    <td class="py-3 px-4 text-right">
-                        <a href="/admin/products/2/edit" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Sửa</a>
+                    <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                        Chưa có sản phẩm nào.
                     </td>
                 </tr>
-
-                <tr>
-                    <td class="py-3 px-4">
-                        <div class="font-semibold">Áo C</div>
-                        <div class="text-xs text-slate-500">Danh mục: Áo</div>
-                    </td>
-                    <td class="py-3 px-4">SKU-C-010</td>
-                    <td class="py-3 px-4">250,000₫</td>
-                    <td class="py-3 px-4">0</td>
-                    <td class="py-3 px-4"><x-badge text="Inactive" tone="danger"/></td>
-                    <td class="py-3 px-4 text-right">
-                        <a href="/admin/products/3/edit" class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Sửa</a>
-                    </td>
-                </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-
-    <div class="p-4 border-t border-slate-200 text-sm text-slate-500">
-        Pagination (tạm)
-    </div>
+    
+    <div class="px-6 py-4 border-t">
+        {{ $products->links() }} 
+        </div>
 </div>
 @endsection
