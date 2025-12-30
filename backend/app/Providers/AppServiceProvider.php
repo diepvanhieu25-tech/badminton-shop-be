@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use App\Repositories\Eloquent\Admin\BrandRepository as AdminBrandRepository;
 use App\Repositories\Eloquent\BrandRepository;
 use App\Repositories\Eloquent\CartRepository;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\UserRepository;
+use App\Repositories\Interfaces\Admin\BrandRepositoryInterface as AdminBrandRepositoryInterface;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\CartRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
@@ -33,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
             CartRepositoryInterface::class,
             CartRepository::class
         );
+        $this->app->bind(AdminBrandRepositoryInterface::class, AdminBrandRepository::class);
     }
 
     /**
