@@ -24,8 +24,8 @@
             <span class="text-lg group-hover:scale-110 transition-transform">🛍️</span>
             <span class="font-medium">Sản phẩm</span>
         </a>
-        <a href="/admin/category/index"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/customers*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+        <a href="{{ route('admin.category.index') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/category*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
             <span class="text-lg group-hover:scale-110 transition-transform">👥</span>
             <span class="font-medium">Danh mục</span>
         </a>
@@ -42,8 +42,8 @@
             <span class="font-medium">Đơn hàng</span>
         </a>
 
-        <a href="/admin/customer/index"
-            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/customers*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
+        <a href="{{ route('admin.user.index') }}"
+            class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/user*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
             <span class="text-lg group-hover:scale-110 transition-transform">👥</span>
             <span class="font-medium">Khách hàng</span>
         </a>

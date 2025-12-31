@@ -3,17 +3,21 @@
 namespace App\Providers;
 
 use App\Repositories\Eloquent\Admin\BrandRepository as AdminBrandRepository;
+use App\Repositories\Eloquent\Admin\CategoryRepository as AdminCategoryRepository;
+use App\Repositories\Eloquent\Admin\UserRepository as AdminUserRepository;
 use App\Repositories\Eloquent\BrandRepository;
 use App\Repositories\Eloquent\CartRepository;
 use App\Repositories\Eloquent\CategoryRepository;
-use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\UserRepository;
+ use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Interfaces\Admin\BrandRepositoryInterface as AdminBrandRepositoryInterface;
+use App\Repositories\Interfaces\Admin\CategoryRepositoryInterface as AdminCategoryRepositoryInterface;
+use App\Repositories\Interfaces\Admin\UserRepositoryInterface as AdminUserRepositoryInterface;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\CartRepositoryInterface;
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
-use App\Repositories\Interfaces\ProductRepositoryInterface;
+ use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\UserRepositoryInterface;
+ use App\Repositories\Interfaces\ProductRepositoryInterface;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +33,15 @@ class AppServiceProvider extends ServiceProvider
             BrandRepositoryInterface::class,
             BrandRepository::class
         );
+        $this->app->bind(
+            CategoryRepositoryInterface::class,
+            CategoryRepository::class
+        );
+        $this->app->bind(
+            UserRepositoryInterface::class,
+            UserRepository::class
+        );
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(
@@ -36,6 +49,8 @@ class AppServiceProvider extends ServiceProvider
             CartRepository::class
         );
         $this->app->bind(AdminBrandRepositoryInterface::class, AdminBrandRepository::class);
+        $this->app->bind(AdminCategoryRepositoryInterface::class, AdminCategoryRepository::class);
+        $this->app->bind(AdminUserRepositoryInterface::class, AdminUserRepository::class);
     }
 
     /**
