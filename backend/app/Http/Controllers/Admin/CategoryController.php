@@ -19,10 +19,17 @@ class CategoryController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['q','is_active']);
-        $category  = $this->service->list($filters, (int)$request->integer('per_page', 15));
+        $query = Category::query();
 
-        return view('admin.category.index', compact('category','filters'));
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%"); // Thêm email nếu cần
+            });
+        }
+        $category = $query->orderBy('created_at', 'desc')->paginate(15);
+        return view('admin.category.index', compact('category'));
+
     }
 
     public function create(): View

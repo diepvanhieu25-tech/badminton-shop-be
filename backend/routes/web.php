@@ -33,5 +33,5 @@ Route::prefix('admin')
 Route::prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::resource('user', UserController::class)->except(['show']);
+        Route::resource('user', UserController::class);
     });

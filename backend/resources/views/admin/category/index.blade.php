@@ -14,15 +14,26 @@
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
     <!-- Tìm kiếm & Bộ lọc -->
     <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-3">
-        <input type="text" 
-               class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition"
-               placeholder="Tìm kiếm danh mục..." />
+       <form action="{{ route('admin.category.index') }}" method="GET" class="flex gap-3">
+            <input type="text"
+                name="search"
+                value="{{ request('search') }}"
+                class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition"
+                placeholder="Tìm danh mục..." />
+            
+            <button type="submit"
+                    class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition">
+                🔍 Tìm
+            </button>
+            
+            @if(request('search'))
+                <a href="{{ route('admin.category.index') }}"
+                class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition">
+                    ✕ Xóa
+                </a>
+            @endif
+        </form>
 
-        <select class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white focus:border-emerald-500">
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-        </select>
     </div>
 
     <!-- Bảng danh sách danh mục -->

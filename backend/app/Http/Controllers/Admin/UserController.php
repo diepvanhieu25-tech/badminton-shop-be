@@ -19,10 +19,22 @@ class UserController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['q','is_active']);
-        $user  = $this->service->list($filters, (int)$request->integer('per_page', 15));
+        $query = User::query();
 
-        return view('admin.user.index', compact('user','filters'));
+        // Tìm kiếm theo tên hoặc số điện thoại
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('phone', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%"); // Thêm email nếu cần
+            });
+        }
+
+        // Phân trang
+        $user = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return view('admin.user.index', compact('user'));
     }
 
     public function create(): View
@@ -54,5 +66,12 @@ class UserController extends Controller
         $this->service->delete($user);
 
         return redirect()->route('admin.user.index')->with('success','Xóa User thành công.');
+    }
+    public function show($id)
+    {
+        $user = User::with(['orders' => function($query) {
+            $query->orderBy('created_at', 'desc')->limit(10); // Lấy 10 đơn mới nhất
+        }])->findOrFail($id);
+        return view('admin.user.detail', compact('user'));
     }
 }
