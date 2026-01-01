@@ -21,10 +21,17 @@ class Product extends Model
         'description',
         'price',
         'original_price',
-        'status' => ProductStatus::class,
+        'status',
         'has_variants',
         'is_featured',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => ProductStatus::class,
+        ];
+    }
 
     // Category
     public function category(): BelongsTo
