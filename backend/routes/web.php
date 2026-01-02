@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\BrandController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,10 +12,10 @@ Route::get('/admin/products', fn() => view('admin.products.index'));
 Route::get('/admin/products/create', fn() => view('admin.products.create'));
 Route::get('/admin/products/{id}/edit', fn() => view('admin.products.edit'));
 
-Route::get('/admin/orders', fn() => view('admin.orders.index'));
-Route::get('/admin/orders/{id}', fn() => view('admin.orders.show'));
-
-
+Route::prefix('admin/orders')->name('admin.orders.')->group(function () {
+    Route::get('/', [OrderController::class, 'index'])->name('index');
+    Route::get('{order}', [OrderController::class, 'show'])->name('show');  
+});
 
 Route::prefix('admin')
     ->name('admin.')

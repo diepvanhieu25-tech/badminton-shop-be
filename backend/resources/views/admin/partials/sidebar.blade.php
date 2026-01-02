@@ -36,7 +36,7 @@
         </a>
 
 
-        <a href="/admin/order/index"
+        <a href="/admin/orders"
             class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50 transition-colors group <?= request()->is('admin/orders*') ? 'bg-emerald-100 text-emerald-700 font-semibold' : 'text-slate-700' ?>">
             <span class="text-lg group-hover:scale-110 transition-transform">🧾</span>
             <span class="font-medium">Đơn hàng</span>
