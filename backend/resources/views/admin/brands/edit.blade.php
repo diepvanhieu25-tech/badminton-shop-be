@@ -15,7 +15,8 @@
         </a>
     </div>
 
-    <form method="POST" action="{{ route('admin.brands.update', $brand) }}" class="p-5 space-y-5">
+    {{-- QUAN TRỌNG: Thêm enctype để upload file --}}
+    <form method="POST" action="{{ route('admin.brands.update', $brand) }}" enctype="multipart/form-data" class="p-5 space-y-5">
         @csrf
         @method('PUT')
 
@@ -27,12 +28,13 @@
         </div>
     </form>
 
+    {{-- Form Delete giữ nguyên --}}
     <div class="p-5 pt-0 border-t border-slate-200">
         <form method="POST" action="{{ route('admin.brands.destroy', $brand) }}"
               onsubmit="return confirm('Xóa hãng này? (soft delete)')">
             @csrf
             @method('DELETE')
-            <button type="submit" class="rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 shadow-sm">
+            <button type="submit" class="mt-5 rounded-xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 shadow-sm">
                 🗑️ Xóa hãng
             </button>
         </form>

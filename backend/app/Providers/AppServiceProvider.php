@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Repositories\Eloquent\Admin\BrandRepository as AdminBrandRepository;
+use App\Repositories\Eloquent\Api\EloquentUserRepository;
 use App\Repositories\Eloquent\BrandRepository;
 use App\Repositories\Eloquent\CartRepository;
 use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Eloquent\UserRepository;
 use App\Repositories\Interfaces\Admin\BrandRepositoryInterface as AdminBrandRepositoryInterface;
+use App\Repositories\Interfaces\Api\UserRepositoryInterface as ApiUserRepositoryInterface;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\CartRepositoryInterface;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(ApiUserRepositoryInterface::class, EloquentUserRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(
             BrandRepositoryInterface::class,

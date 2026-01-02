@@ -25,18 +25,10 @@ class BrandStoreRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if ($this->has('name')) {
-            // trim để tránh dấu cách đầu/cuối
-            $this->merge(['name' => trim((string) $this->input('name'))]);
-        }
-    }
-
-    protected function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success' => false,
-            'message' => 'Dữ liệu không hợp lệ.',
-            'errors'  => $validator->errors(),
-        ], 422));
+        // Xử lý checkbox: nếu không tick, HTML không gửi value lên -> mặc định set 0
+        $this->merge([
+            'is_active' => $this->has('is_active') ? 1 : 0,
+            'name'      => $this->has('name') ? trim((string) $this->input('name')) : null,
+        ]);
     }
 }
