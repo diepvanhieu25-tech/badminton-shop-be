@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
@@ -22,7 +23,7 @@ class SocialAuthController extends Controller
         // --- FIX LỖI BÁO ĐỎ 'stateless' ---
         // Dòng này giúp VS Code hiểu $driver là AbstractProvider có hàm stateless()
         /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
-        
+
         return $driver->stateless()->redirect();
     }
 
@@ -37,7 +38,7 @@ class SocialAuthController extends Controller
             // --- FIX LỖI BÁO ĐỎ 'stateless' ---
             /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
             $socialUser = $driver->stateless()->user();
-            
+
             // Gọi Service xử lý logic tìm/tạo user
             $result = $this->authService->handleSocialCallback($provider, $socialUser);
 
@@ -51,19 +52,18 @@ class SocialAuthController extends Controller
                 true, // Secure
                 true, // HttpOnly
                 false,
-                'Strict'
+                'Lax'
             );
 
             // Redirect về Frontend
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            
-            return redirect()->to($frontendUrl . '/dashboard')
-                             ->withCookie($cookie);
 
+            return redirect()->to($frontendUrl . '/dashboard')
+                ->withCookie($cookie);
         } catch (\Exception $e) {
             // Log lỗi
             \Illuminate\Support\Facades\Log::error("Social Login Error: " . $e->getMessage());
-            
+
             // Redirect về trang login FE kèm lỗi
             return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login?error=social_login_failed');
         }
