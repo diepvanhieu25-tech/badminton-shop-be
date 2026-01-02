@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\BrandService;
-use App\Http\Resources\BrandResource;
+use App\Services\Api\BrandService;
+use App\Http\Resources\Api\BrandResource;
 use Illuminate\Http\JsonResponse;
 
 class BrandController extends Controller

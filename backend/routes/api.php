@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\BrandController;
+use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\ProductController;
@@ -23,7 +23,7 @@ Route::get('/health', fn() => ['ok' => true]);
 //     Route::post('/profile/update', [AuthController::class, 'updateProfile']);
 // });
 
-Route::prefix('brands')->group(function () {
+Route::prefix('v1/brands')->group(function () {
     Route::get('/', [BrandController::class, 'index']);
 });
 
