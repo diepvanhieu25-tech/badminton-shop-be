@@ -18,19 +18,22 @@ class Category extends Model
         'is_active',
     ];
 
-    // Quan hệ: Thuộc về danh mục cha
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
 
-    // Quan hệ: Có nhiều danh mục con
     public function children(): HasMany
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
 
-    // Quan hệ: Có nhiều sản phẩm
+    // --- TỐI ƯU: Quan hệ đệ quy để load đa cấp (Level 1 -> n) ---
+    public function childrenRecursive(): HasMany
+    {
+        return $this->children()->with('childrenRecursive');
+    }
+    
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

@@ -4,15 +4,15 @@ namespace App\Providers;
 
 use App\Repositories\Eloquent\Admin\BrandRepository as AdminBrandRepository;
 use App\Repositories\Eloquent\Api\BrandRepository;
+use App\Repositories\Eloquent\Api\CategoryRepository;
 use App\Repositories\Eloquent\Api\EloquentUserRepository;
 use App\Repositories\Eloquent\CartRepository;
-use App\Repositories\Eloquent\CategoryRepository;
 use App\Repositories\Eloquent\ProductRepository;
 use App\Repositories\Interfaces\Admin\BrandRepositoryInterface as AdminBrandRepositoryInterface;
 use App\Repositories\Interfaces\Api\BrandRepositoryInterface;
+use App\Repositories\Interfaces\Api\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\Api\UserRepositoryInterface;
 use App\Repositories\Interfaces\CartRepositoryInterface;
-use App\Repositories\Interfaces\CategoryRepositoryInterface;
 use App\Repositories\Interfaces\ProductRepositoryInterface;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;

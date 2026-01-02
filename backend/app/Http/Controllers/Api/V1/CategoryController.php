@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\GetCategoryListRequest;
-use App\Services\CategoryService;
-use App\Http\Resources\CategoryResource;
+use App\Services\Api\CategoryService;
+use App\Http\Resources\Api\CategoryResource;
 use Illuminate\Http\JsonResponse;
 
 class CategoryController extends Controller
