@@ -1,15 +1,25 @@
 <?php
 
-namespace App\Repositories\Eloquent;
+namespace App\Repositories\Eloquent\Api;
 
 use App\Models\Product;
-use App\Repositories\Interfaces\ProductRepositoryInterface;
+use App\Repositories\Interfaces\Api\ProductRepositoryInterface;
 
 class ProductRepository implements ProductRepositoryInterface
 {
     public function getList(array $filters, int $limit)
     {
-        $query = Product::where('status', 'active'); // Chỉ lấy sp đang bán
+        $query = Product::select([
+            'id',
+            'name',
+            'sku',
+            'thumbnail',
+            'price',
+            'original_price',
+            'category_id',
+            'brand_id',
+        ])
+            ->where('status', 'active');
 
         // 1. Lọc theo danh mục
         if (!empty($filters['category_id'])) {
@@ -52,13 +62,21 @@ class ProductRepository implements ProductRepositoryInterface
         }
 
         // Trả về kết quả phân trang
-        return $query->with(['category', 'brand'])->paginate($limit);
+        return $query->with([
+            'category:id,name',
+            'brand:id,name'
+        ])->paginate($limit);
     }
 
     public function findDetail(int $id)
     {
         return Product::where('status', 'active')
-            ->with(['category', 'brand', 'images', 'variants'])
+            ->with([
+                'category:id,name',
+                'brand:id,name',
+                'images:id,product_id,image_url', // Chỉ lấy cột cần thiết của ảnh
+                'variants' // Variants thì lấy hết để FE xử lý logic
+            ])
             ->find($id);
     }
 }

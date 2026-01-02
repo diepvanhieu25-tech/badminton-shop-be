@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Services\ProductService;
-use App\Http\Requests\GetProductListRequest;
-use App\Http\Resources\ProductResource;
-use App\Http\Resources\ProductDetailResource;
+use App\Services\Api\ProductService;
+use App\Http\Requests\Api\GetProductListRequest;
+use App\Http\Resources\Api\ProductResource;
+use App\Http\Resources\Api\ProductDetailResource;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller

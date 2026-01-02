@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductResource extends JsonResource
+class ProductVariantResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
         return [
             'id'             => $this->id,
-            'name'           => $this->name,
             'sku'            => $this->sku,
-            'thumbnail'      => $this->thumbnail ? asset($this->thumbnail) : null,
+            // Attributes là JSON trong DB, Model đã cast sang Array
+            'attributes'     => $this->attributes, // VD: {"color": "Red", "size": "M"}
             'price'          => (float) $this->price,
             'original_price' => (float) $this->original_price,
-            'category_name'  => $this->category->name ?? null,
-            'brand_name'     => $this->brand->name ?? null,
+            'stock_qty'      => (int) $this->stock_qty,
+            'image'          => $this->image ? asset($this->image) : null,
         ];
     }
 }

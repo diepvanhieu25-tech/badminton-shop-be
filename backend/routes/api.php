@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\V1\AuthController as V1AuthController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SocialAuthController;
 use Illuminate\Support\Facades\Route;
@@ -17,10 +18,10 @@ Route::prefix('v1/categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']);
 });
 
-// Route::prefix('products')->group(function () {
-//     Route::get('/', [ProductController::class, 'index']);
-//     Route::get('/{id}', [ProductController::class, 'show']);
-// });
+Route::prefix('v1/products')->group(function () {
+    Route::get('/', [ProductController::class, 'index']);
+    Route::get('/{id}', [ProductController::class, 'show']);
+});
 
 
 // Route::middleware(['auth:sanctum'])->group(function () {
