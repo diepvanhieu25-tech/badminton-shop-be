@@ -5,7 +5,7 @@
 
 @section('content')
 <div class="flex items-center justify-between mb-6">
-    <div class="text-sm text-slate-500">Thông tin chi tiết và thống kê của danh mục</div>
+    <div class="text-sm text-slate-500">Thông tin chi tiết của danh mục</div>
     <div class="flex gap-3">
         <a href="/admin/categories/{{ $category->id }}/edit" 
            class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
