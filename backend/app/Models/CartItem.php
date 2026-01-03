@@ -11,6 +11,12 @@ class CartItem extends Model
         'cart_id',
         'product_variant_id',
         'quantity',
+        'is_selected'
+    ];
+
+    protected $casts = [
+        'quantity' => 'integer',
+        'is_selected' => 'boolean',
     ];
 
     public function cart(): BelongsTo
