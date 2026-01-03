@@ -19,10 +19,12 @@ class BrandController extends Controller
 
     public function index(Request $request): View
     {
-        $filters = $request->only(['q','is_active']);
-        $brands  = $this->service->list($filters, (int)$request->integer('per_page', 15));
+        $brands = $this->service->list(
+            $request->only(['q', 'is_active']), 
+            (int) $request->input('per_page', 15)
+        );
 
-        return view('admin.brands.index', compact('brands','filters'));
+        return view('admin.brands.index', compact('brands'));
     }
 
     public function create(): View
@@ -32,9 +34,13 @@ class BrandController extends Controller
 
     public function store(BrandStoreRequest $request): RedirectResponse
     {
-        $this->service->create($request->validated());
+        // Tách file ra khỏi validated data
+        $this->service->create(
+            $request->validated(), // Mảng dữ liệu (name, description, is_active)
+            $request->file('logo') // File object
+        );
 
-        return redirect()->route('admin.brands.index')->with('success','Tạo brand thành công.');
+        return redirect()->route('admin.brands.index')->with('success', 'Tạo brand thành công.');
     }
 
     public function edit(Brand $brand): View
@@ -44,15 +50,18 @@ class BrandController extends Controller
 
     public function update(BrandUpdateRequest $request, Brand $brand): RedirectResponse
     {
-        $this->service->update($brand, $request->validated());
+        $this->service->update(
+            $brand, 
+            $request->validated(), 
+            $request->file('logo')
+        );
 
-        return redirect()->route('admin.brands.edit', $brand)->with('success','Cập nhật brand thành công.');
+        return redirect()->route('admin.brands.index')->with('success', 'Cập nhật brand thành công.');
     }
 
     public function destroy(Brand $brand): RedirectResponse
     {
         $this->service->delete($brand);
-
-        return redirect()->route('admin.brands.index')->with('success','Xóa brand thành công.');
+        return redirect()->route('admin.brands.index')->with('success', 'Xóa brand thành công.');
     }
 }

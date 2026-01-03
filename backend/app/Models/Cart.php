@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CartStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,13 @@ class Cart extends Model
         'session_id',
         'status', // active, abandoned, converted
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'status' => CartStatus::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {

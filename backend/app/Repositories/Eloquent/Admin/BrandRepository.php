@@ -28,7 +28,7 @@ class BrandRepository implements BrandRepositoryInterface
 
     public function create(array $data): Brand
     {
-        return Brand::query()->create($data);
+        return Brand::create($data);
     }
 
     public function update(Brand $brand, array $data): Brand

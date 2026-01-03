@@ -15,7 +15,8 @@
         </a>
     </div>
 
-    <form method="POST" action="{{ route('admin.brands.store') }}" class="p-5 space-y-5">
+    {{-- QUAN TRỌNG: Thêm enctype để upload file --}}
+    <form method="POST" action="{{ route('admin.brands.store') }}" enctype="multipart/form-data" class="p-5 space-y-5">
         @csrf
         @include('admin.brands._form')
         <div class="flex items-center justify-end gap-2 pt-2">
