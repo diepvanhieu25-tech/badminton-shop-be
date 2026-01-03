@@ -1,111 +1,91 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin - Danh mục')
-@section('page_title', 'Danh mục sản phẩm')
+@section('title', 'Admin - Quản lý danh mục')
 
 @section('content')
 <div class="flex items-center justify-between mb-6">
-    <div class="text-sm text-slate-500">Quản lý danh mục sản phẩm cửa hàng cầu lông</div>
-    <a href="/admin/category/create" class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
-        + Thêm danh mục mới
+    <div class="text-sm text-slate-500">Quản lý danh mục sản phẩm</div>
+    <a href="{{ route('admin.category.create') }}" class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
+        + Thêm danh mục
     </a>
 </div>
 
 <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-    <!-- Tìm kiếm & Bộ lọc -->
-    <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row gap-3">
-        <input type="text" 
-               class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 bg-slate-50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition"
-               placeholder="Tìm kiếm danh mục..." />
-
-        <select class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white focus:border-emerald-500">
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-        </select>
+    <div class="p-4 border-b border-slate-200">
+        <form action="{{ route('admin.category.index') }}" method="GET" class="flex gap-3 max-w-lg">
+            <input type="text" name="search" value="{{ request('search') }}"
+                   class="flex-1 px-4 py-2.5 rounded-lg border border-slate-300 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 transition"
+                   placeholder="Tìm kiếm danh mục...">
+            <button type="submit" class="px-4 py-2.5 rounded-lg bg-slate-800 text-white hover:bg-slate-900 font-medium transition">
+                Tìm
+            </button>
+            @if(request('search'))
+                <a href="{{ route('admin.category.index') }}" class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium transition">
+                    Xóa
+                </a>
+            @endif
+        </form>
     </div>
 
-    <!-- Bảng danh sách danh mục -->
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-slate-50 text-slate-600">
-                <tr class="border-b border-slate-200">
-                    <th class="py-4 px-6 text-left font-medium">Tên danh mục</th>
-                    <th class="py-4 px-6 text-left font-medium">Slug</th>
-                    <th class="py-4 px-6 text-left font-medium">Số sản phẩm</th>
-                    <th class="py-4 px-6 text-left font-medium">Trạng thái</th>
-                    <th class="py-4 px-6 text-right font-medium">Hành động</th>
+        <table class="w-full text-sm text-left">
+            <thead class="bg-slate-50 text-slate-600 uppercase font-medium">
+                <tr>
+                    <th class="py-4 px-6 w-20">ID</th>
+                    <th class="py-4 px-6 w-32">Hình ảnh</th>
+                    <th class="py-4 px-6">Tên danh mục</th>
+                    <th class="py-4 px-6 w-40">Trạng thái</th>
+                    <th class="py-4 px-6 text-right w-32">Hành động</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-                <tr class="hover:bg-slate-50 transition" onclick="window.location.href='/admin/category/detail'">
-                    <td class="py-4 px-6">
-                        <div class="font-semibold">Vợt cầu lông</div>
-                        <div class="text-xs text-slate-500 mt-1">Danh mục chính</div>
-                    </td>
-                    <td class="py-4 px-6 text-slate-600">vot-cau-long</td>
-                    <td class="py-4 px-6">42</td>
-                    <td class="py-4 px-6">
-                        <x-badge text="Active" tone="success" />
-                    </td>
-                    <td class="py-4 px-6 text-right space-x-2">
-                        <a href="/admin/categories/1/edit" 
-                           class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 transition inline-block">
-                            Sửa
-                        </a>
-                        <button onclick="confirm('Xóa danh mục này?')" 
-                                class="px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition">
-                            Xóa
-                        </button>
-                    </td>
-                </tr>
-
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="py-4 px-6">
-                        <div class="font-semibold">Giày cầu lông</div>
-                    </td>
-                    <td class="py-4 px-6 text-slate-600">giay-cau-long</td>
-                    <td class="py-4 px-6">28</td>
-                    <td class="py-4 px-6">
-                        <x-badge text="Active" tone="success" />
-                    </td>
-                    <td class="py-4 px-6 text-right space-x-2">
-                        <a href="/admin/categories/2/edit" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 transition inline-block">Sửa</a>
-                        <button class="px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition">Xóa</button>
-                    </td>
-                </tr>
-
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="py-4 px-6">
-                        <div class="font-semibold">Phụ kiện</div>
-                        <div class="text-xs text-slate-500 mt-1">Quấn cán, dây căng, túi...</div>
-                    </td>
-                    <td class="py-4 px-6 text-slate-600">phu-kien</td>
-                    <td class="py-4 px-6">15</td>
-                    <td class="py-4 px-6">
-                        <x-badge text="Inactive" tone="danger" />
-                    </td>
-                    <td class="py-4 px-6 text-right space-x-2">
-                        <a href="/admin/categories/3/edit" class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100 transition inline-block">Sửa</a>
-                        <button class="px-3 py-1.5 rounded-lg border border-red-300 text-red-600 hover:bg-red-50 transition">Xóa</button>
-                    </td>
-                </tr>
-
-                <!-- Thêm các dòng khác nếu cần -->
+                @forelse($category as $item)
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-6 py-4 text-slate-500">{{ $item->id }}</td>
+                        <td class="px-6 py-4">
+                            @if($item->image_url)
+                                {{-- QUAN TRỌNG: Sử dụng Storage::url() --}}
+                                <img src="{{ Storage::url($item->image_url) }}" 
+                                     alt="{{ $item->name }}" 
+                                     class="h-10 w-10 rounded-lg object-cover border border-slate-200 bg-slate-100">
+                            @else
+                                <div class="h-10 w-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                                    No img
+                                </div>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 font-semibold text-slate-900">{{ $item->name }}</td>
+                        <td class="px-6 py-4">
+                            @if($item->is_active)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    ● Active
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
+                                    ● Inactive
+                                </span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{{ route('admin.category.edit', $item) }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition">
+                                ✏️ Sửa
+                            </a>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td class="px-6 py-8 text-center text-slate-500" colspan="5">
+                            Chưa có danh mục nào được tạo.
+                        </td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
 
-    <!-- Phân trang -->
-    <div class="p-4 border-t border-slate-200 text-sm text-slate-500 flex items-center justify-between">
-        <div>Hiển thị 1-10 của 25 danh mục</div>
-        <div class="flex gap-2">
-            <button class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50">Trước</button>
-            <button class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white">1</button>
-            <button class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50">2</button>
-            <button class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50">3</button>
-            <button class="px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50">Sau</button>
-        </div>
+    <div class="p-4 border-t border-slate-200">
+        {{ $category->withQueryString()->links() }}
     </div>
 </div>
 @endsection
