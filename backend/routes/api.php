@@ -25,9 +25,12 @@ Route::prefix('v1/products')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
-    // GET /api/v1/cart -> Xem giỏ hàng hiện tại
-    Route::get('/', [CartController::class, 'index'])->name('api.v1.cart.index');
-    Route::post('/add', [CartController::class, 'addToCart'])->name('api.v1.cart.add');
+    Route::get('/', [CartController::class, 'index']);           
+    Route::post('/items', [CartController::class, 'addToCart']); 
+    Route::delete('/clear', [CartController::class, 'clear']); 
+    Route::put('/select', [CartController::class, 'updateSelection']);
+    Route::put('/items/{item_id}', [CartController::class, 'updateItem']); 
+    Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); 
 });
 
 Route::prefix('v1/auth')->group(function () {

@@ -65,4 +65,29 @@ class CartRepository implements CartRepositoryInterface
             'quantity'           => $quantity
         ]);
     }
+
+    public function findItemById(int $itemId)
+    {
+        // Load cả quan hệ cart và variant để check quyền + tồn kho
+        return CartItem::with(['cart', 'variant'])->find($itemId);
+    }
+
+    public function deleteItem(int $itemId)
+    {
+        return CartItem::destroy($itemId);
+    }
+
+    public function clearCart(int $cartId)
+    {
+        // Xóa tất cả item thuộc cart này
+        return CartItem::where('cart_id', $cartId)->delete();
+    }
+
+    public function updateSelection(int $cartId, array $itemIds, bool $isSelected)
+    {
+        // Update hàng loạt, NHƯNG chỉ update những item thuộc về cartId này (Bảo mật)
+        return CartItem::where('cart_id', $cartId)
+            ->whereIn('id', $itemIds)
+            ->update(['is_selected' => $isSelected]);
+    }
 }

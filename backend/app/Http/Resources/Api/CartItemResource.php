@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Resources;
+namespace App\Http\Resources\Api;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -9,36 +9,44 @@ class CartItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // $this ở đây là CartItem Model
-        $variant = $this->variant;
+        // 1. Kiểm tra kỹ xem variant còn tồn tại không
+        $variant = $this->variant; 
         $product = $variant ? $variant->product : null;
+
+        // Nếu variant bị xóa (null), ta trả về dữ liệu default để không crash API
+        if (!$variant || !$product) {
+            return [
+                'id' => $this->id,
+                'error' => 'Sản phẩm này không còn tồn tại',
+                'is_invalid' => true, // Cờ để FE biết mà ẩn hoặc xóa dòng này
+            ];
+        }
 
         return [
             'id'                 => $this->id,
             'quantity'           => (int) $this->quantity,
             'product_variant_id' => $this->product_variant_id,
             
-            // Thông tin hiển thị (Flatten dữ liệu cho FE dễ lấy)
-            'sku'           => $variant?->sku,
-            'name'          => $product?->name ?? 'Sản phẩm không tồn tại',
-            'attributes'    => $variant?->attributes, // Ví dụ: {"color": "Đỏ", "size": "M"}
+            // Dùng toán tử null safe (?->) hoặc default value
+            'sku'        => $variant->sku ?? 'N/A',
+            'name'       => $product->name ?? 'Sản phẩm lỗi',
+            'attributes' => $variant->attributes, 
             
-            // Xử lý ảnh: Ưu tiên ảnh của Variant, nếu không có lấy ảnh Product
-            'image_url'     => $this->getImageUrl($variant, $product),
+            'image_url'  => $this->getImageUrl($variant, $product),
 
-            // Tính toán tiền
-            'price'         => (float) ($variant?->price ?? 0),
-            'subtotal'      => (float) ($variant?->price * $this->quantity),
+            'price'      => (float) ($variant->price ?? 0),
+            'subtotal'   => (float) (($variant->price ?? 0) * $this->quantity),
 
-            // Kiểm tra tồn kho (Để FE hiện thông báo nếu hết hàng)
-            'in_stock'      => $variant && $variant->stock_qty >= $this->quantity,
-            'max_qty'       => $variant?->stock_qty ?? 0,
+            'in_stock'   => $variant->stock_qty >= $this->quantity,
+            'max_qty'    => $variant->stock_qty ?? 0,
+            'is_selected' => (boolean) $this->is_selected,
         ];
     }
 
     private function getImageUrl($variant, $product)
     {
+        // Check null kỹ ở đây nữa
         $path = $variant?->image ?? $product?->thumbnail;
-        return $path ? Storage::url($path) : null;
+        return $path ? (filter_var($path, FILTER_VALIDATE_URL) ? $path : Storage::url($path)) : null;
     }
 }

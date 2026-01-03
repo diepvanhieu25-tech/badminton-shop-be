@@ -8,5 +8,9 @@ interface CartRepositoryInterface
     public function firstOrCreateCart(int $userId);
     public function findCartItem($cartId, $variantId);
     public function createOrUpdateItem($cartId, $variantId, $quantity, $isUpdate = false);
-    public function getVariantStock($variantId); // Helper để check tồn kho
+    public function getVariantStock($variantId);
+    public function findItemById(int $itemId);
+    public function deleteItem(int $itemId);
+    public function clearCart(int $cartId);
+    public function updateSelection(int $cartId, array $itemIds, bool $isSelected);
 }
