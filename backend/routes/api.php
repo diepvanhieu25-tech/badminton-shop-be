@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\V1\AuthController as V1AuthController;
+use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ProfileController;
@@ -23,14 +24,11 @@ Route::prefix('v1/products')->group(function () {
     Route::get('/{id}', [ProductController::class, 'show']);
 });
 
-
-// Route::middleware(['auth:sanctum'])->group(function () {
-//     Route::post('/auth/logout', [AuthController::class, 'logout']);
-
-//     Route::prefix('cart')->group(function () {
-//         Route::get('/', [CartController::class, 'index']);
-//     });
-// });
+Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
+    // GET /api/v1/cart -> Xem giỏ hàng hiện tại
+    Route::get('/', [CartController::class, 'index'])->name('api.v1.cart.index');
+    Route::post('/add', [CartController::class, 'addToCart'])->name('api.v1.cart.add');
+});
 
 Route::prefix('v1/auth')->group(function () {
     // POST /api/v1/auth/register
