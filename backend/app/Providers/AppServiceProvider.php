@@ -10,6 +10,7 @@ use App\Repositories\Eloquent\Api\BrandRepository;
 use App\Repositories\Eloquent\Api\CartRepository;
 use App\Repositories\Eloquent\Api\CategoryRepository;
 use App\Repositories\Eloquent\Api\EloquentUserRepository;
+use App\Repositories\Eloquent\Api\OrderRepository;
 use App\Repositories\Eloquent\Api\ProductRepository;
 use App\Repositories\Interfaces\Admin\BrandRepositoryInterface as AdminBrandRepositoryInterface;
 use App\Repositories\Interfaces\Admin\CategoryRepositoryInterface as AdminCategoryRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Repositories\Interfaces\Admin\UserRepositoryInterface as AdminUserReposi
 use App\Repositories\Interfaces\Api\BrandRepositoryInterface;
 use App\Repositories\Interfaces\Api\CartRepositoryInterface;
 use App\Repositories\Interfaces\Api\CategoryRepositoryInterface;
+use App\Repositories\Interfaces\Api\OrderRepositoryInterface;
 use App\Repositories\Interfaces\Api\ProductRepositoryInterface;
 use App\Repositories\Interfaces\Api\UserRepositoryInterface;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -34,8 +36,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind( BrandRepositoryInterface::class, BrandRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
-        $this->app->bind( CartRepositoryInterface::class, CartRepository::class
-        );
+        $this->app->bind( CartRepositoryInterface::class, CartRepository::class);
+        $this->app->bind( OrderRepositoryInterface::class, OrderRepository::class);
         $this->app->bind(AdminBrandRepositoryInterface::class, AdminBrandRepository::class);
         $this->app->bind(AdminCategoryRepositoryInterface::class, AdminCategoryRepository::class);
         $this->app->bind(AdminUserRepositoryInterface::class, UserRepository::class);
