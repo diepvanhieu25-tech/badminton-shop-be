@@ -7,36 +7,30 @@ use App\Repositories\Interfaces\Api\ProductRepositoryInterface;
 
 class ProductRepository implements ProductRepositoryInterface
 {
-    public function getList(array $filters, int $limit)
+    // 1. Lấy danh sách & Lọc
+    public function getList(array $filters)
     {
+        $limit = $filters['limit'] ?? 20;
+
+        // Select tối ưu cột cần thiết
         $query = Product::select([
-            'id',
-            'name',
-            'sku',
-            'thumbnail',
-            'price',
-            'original_price',
-            'category_id',
-            'brand_id',
-        ])
-            ->where('status', 'active');
+            'id', 'name', 'sku', 'thumbnail', 'price', 
+            'original_price', 'category_id', 'brand_id', 'has_variants', 'is_featured'
+        ])->where('status', 'active'); // Chỉ lấy SP đang active
 
-        // 1. Lọc theo danh mục
-        if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
-        }
-
-        // 2. Lọc theo thương hiệu
-        if (!empty($filters['brand_id'])) {
-            $query->where('brand_id', $filters['brand_id']);
-        }
-
-        // 3. Tìm kiếm theo tên
+        // --- FILTER ---
         if (!empty($filters['keyword'])) {
             $query->where('name', 'like', '%' . $filters['keyword'] . '%');
         }
-
-        // 4. Lọc theo giá
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+        if (!empty($filters['is_featured'])) {
+            $query->where('is_featured', $filters['is_featured']);
+        }
         if (!empty($filters['min_price'])) {
             $query->where('price', '>=', $filters['min_price']);
         }
@@ -44,39 +38,41 @@ class ProductRepository implements ProductRepositoryInterface
             $query->where('price', '<=', $filters['max_price']);
         }
 
-        // 5. Sắp xếp
+        // --- SORT ---
         $sortBy = $filters['sort_by'] ?? 'newest';
         switch ($sortBy) {
-            case 'price_asc':
-                $query->orderBy('price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('price', 'desc');
-                break;
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
-                break;
-            default:
-                $query->orderBy('created_at', 'desc');
-                break;
+            case 'price_asc':  $query->orderBy('price', 'asc'); break;
+            case 'price_desc': $query->orderBy('price', 'desc'); break;
+            case 'name_asc':   $query->orderBy('name', 'asc'); break;
+            default:           $query->orderBy('created_at', 'desc'); break;
         }
 
-        // Trả về kết quả phân trang
-        return $query->with([
-            'category:id,name',
-            'brand:id,name'
-        ])->paginate($limit);
+        // Eager load category/brand để lấy tên hiển thị
+        return $query->with(['category:id,name', 'brand:id,name'])->paginate($limit);
     }
 
+    // 2. Lấy chi tiết đầy đủ
     public function findDetail(int $id)
     {
         return Product::where('status', 'active')
             ->with([
                 'category:id,name',
                 'brand:id,name',
-                'images:id,product_id,image_url', // Chỉ lấy cột cần thiết của ảnh
-                'variants' // Variants thì lấy hết để FE xử lý logic
+                'images:id,product_id,image_url', // Album ảnh
+                'variants'                         // Biến thể (Size/Màu)
             ])
-            ->find($id);
+            ->findOrFail($id); // Tự báo lỗi 404 nếu không thấy
+    }
+
+    // 3. Lấy sản phẩm liên quan
+    public function getRelated(int $currentId, int $categoryId, int $limit = 4)
+    {
+        return Product::select(['id', 'name', 'thumbnail', 'price', 'original_price', 'category_id'])
+            ->where('status', 'active')
+            ->where('category_id', $categoryId)
+            ->where('id', '!=', $currentId) // Trừ chính nó ra
+            ->inRandomOrder()               // Lấy ngẫu nhiên
+            ->limit($limit)
+            ->get();
     }
 }

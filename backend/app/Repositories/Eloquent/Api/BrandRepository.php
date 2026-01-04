@@ -10,7 +10,7 @@ class BrandRepository implements BrandRepositoryInterface
 {
     public function getAll(): Collection
     {
-        return Brand::select('id', 'name', 'logo_url') // Chỉ lấy cột cần thiết
+        return Brand::select('id', 'name', 'logo_url')
             ->where('is_active', true)
             ->orderBy('name', 'asc')
             ->get();

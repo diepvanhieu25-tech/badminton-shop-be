@@ -1,62 +1,95 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\BrandController;
-use App\Http\Controllers\Api\V1\AuthController as V1AuthController;
-use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\ProductController;
+use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
-use App\Http\Controllers\Api\V1\ProductController;
-use App\Http\Controllers\Api\V1\ProfileController;
-use App\Http\Controllers\Api\V1\SocialAuthController;
-use Illuminate\Support\Facades\Route;
 
-Route::get('/health', fn() => ['ok' => true]);
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+*/
 
-Route::prefix('v1/brands')->group(function () {
-    Route::get('/', [BrandController::class, 'index']);
-});
+Route::get('/health', fn() => ['status' => 'ok', 'timestamp' => now()]);
 
-Route::prefix('v1/categories')->group(function () {
-    Route::get('/', [CategoryController::class, 'index']);
-});
+// =========================================================================
+// VERSION V1
+// =========================================================================
+Route::prefix('v1')->group(function () {
 
-Route::prefix('v1/products')->group(function () {
-    Route::get('/', [ProductController::class, 'index']);
-    Route::get('/{id}', [ProductController::class, 'show']);
-});
+    // =====================================================================
+    // 1. PUBLIC ROUTES (Không cần đăng nhập)
+    // =====================================================================
 
-Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
-    Route::get('/', [CartController::class, 'index']);           
-    Route::post('/items', [CartController::class, 'addToCart']); 
-    Route::delete('/clear', [CartController::class, 'clear']); 
-    Route::put('/select', [CartController::class, 'updateSelection']);
-    Route::put('/items/{item_id}', [CartController::class, 'updateItem']); 
-    Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); 
-});
+    // --- Authentication (Guest) ---
+    Route::prefix('auth')->group(function () {
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
-Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
-    // Đặt hàng
-    Route::post('/', [OrderController::class, 'store']);
-    Route::get('/', [OrderController::class, 'index']);
-    Route::get('/{code}', [OrderController::class, 'show']);
-    Route::put('/{code}/cancel', [OrderController::class, 'cancel']);
-    Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
-});
-Route::get('v1/payment/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
-
-Route::prefix('v1/auth')->group(function () {
-    // POST /api/v1/auth/register
-    Route::post('/register', [V1AuthController::class, 'register']);
-    // POST /api/v1/auth/login
-    Route::post('/login', [V1AuthController::class, 'login']);
-
-    // Protected routes (Phải đăng nhập mới gọi được)
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [V1AuthController::class, 'logout']);
-        Route::post('/me', [ProfileController::class, 'update']);
+        // Social Login
+        Route::get('/{provider}/redirect', [AuthController::class, 'redirectToProvider']);
+        Route::get('/{provider}/callback', [AuthController::class, 'handleProviderCallback']);
     });
 
-    Route::get('/{provider}/redirect', [SocialAuthController::class, 'redirectToProvider']);
-    Route::get('/{provider}/callback', [SocialAuthController::class, 'handleProviderCallback']);
+    // --- Catalog (Sản phẩm, Danh mục, Thương hiệu) ---
+    Route::prefix('brands')->group(function () {
+        Route::get('/', [BrandController::class, 'index']);
+    });
+
+    Route::prefix('categories')->group(function () {
+        Route::get('/', [CategoryController::class, 'index']);
+    });
+
+    Route::prefix('products')->group(function () {
+        Route::get('/', [ProductController::class, 'index']);
+        Route::get('/{id}', [ProductController::class, 'show']);
+    });
+
+    // --- Payment Callback (VNPay gọi vào đây nên phải để Public) ---
+    Route::get('payment/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
+
+
+    // =====================================================================
+    // 2. PROTECTED ROUTES (Yêu cầu Token - auth:sanctum)
+    // =====================================================================
+    Route::middleware('auth:sanctum')->group(function () {
+
+        // --- User Profile & Auth ---
+        Route::prefix('auth')->group(function () {
+            Route::post('/logout', [AuthController::class, 'logout']);
+            Route::get('/me', [ProfileController::class, 'show']);
+            // Dùng POST cho update profile vì thường có upload file (avatar)
+            // Laravel xử lý multipart/form-data với method PUT rất tệ
+            Route::post('/me', [ProfileController::class, 'update']);
+        });
+
+        // --- Cart (Giỏ hàng) ---
+        Route::prefix('cart')->group(function () {
+            Route::get('/', [CartController::class, 'index']);             // Xem giỏ
+            Route::post('/items', [CartController::class, 'addToCart']);   // Thêm món
+            Route::put('/items/{item_id}', [CartController::class, 'updateItem']); // Sửa số lượng
+            Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); // Xóa món
+            Route::delete('/clear', [CartController::class, 'clear']);     // Xóa sạch
+            Route::put('/select', [CartController::class, 'updateSelection']); // Chọn để mua
+        });
+
+        // --- Orders (Đơn hàng) ---
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [OrderController::class, 'index']);            // Danh sách đơn
+            Route::post('/', [OrderController::class, 'store']);           // Tạo đơn mới
+            Route::get('/{code}', [OrderController::class, 'show']);       // Chi tiết đơn
+            Route::put('/{code}/cancel', [OrderController::class, 'cancel']); // Hủy đơn
+            
+            // Payment (Tạo URL thanh toán cần user đã login)
+            Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
+        });
+
+    }); 
+
 });

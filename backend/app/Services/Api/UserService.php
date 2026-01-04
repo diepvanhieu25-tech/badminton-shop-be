@@ -5,7 +5,7 @@ namespace App\Services\Api;
 use App\Repositories\Interfaces\Api\UserRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-// Import thư viện ảnh (Dùng cho Intervention Image v3)
+use Illuminate\Support\Facades\Hash;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 
@@ -17,46 +17,46 @@ class UserService
 
     public function updateProfile($user, array $data, ?UploadedFile $avatar = null)
     {
+        // 1. Xử lý Avatar
         if ($avatar) {
-            // 1. Xóa ảnh cũ nếu có
-            if ($user->avatar_url) {
-                // Kiểm tra file có tồn tại không trước khi xóa để tránh lỗi
+            // Xóa ảnh cũ: Chỉ xóa nếu nó KHÔNG phải là link ngoại (http...) và file có tồn tại
+            if ($user->avatar_url && !filter_var($user->avatar_url, FILTER_VALIDATE_URL)) {
                 if (Storage::disk('public')->exists($user->avatar_url)) {
                     Storage::disk('public')->delete($user->avatar_url);
                 }
             }
 
-            // 2. Tạo tên file tùy chỉnh: avatar_{id}_{timestamp}.{ext}
+            // Tạo tên file
             $filename = 'avatar_' . $user->id . '_' . time() . '.' . $avatar->getClientOriginalExtension();
             $path = 'avatars/' . $filename;
 
-            // 3. Xử lý ảnh: Resize và Encode
+            // Resize & Encode ảnh (Intervention v3)
             $manager = new ImageManager(new Driver());
-
-            // Đọc file ảnh từ request
             $image = $manager->read($avatar);
-
-            // Resize ảnh:
-            // scale: Giữ nguyên tỷ lệ khung hình (aspect ratio).
-            // Chiều rộng tối đa 300px, chiều cao tự tính.
+            
+            // Resize (scale width 300, auto height)
             $image->scale(width: 300);
-
-            // Encode sang định dạng JPG với chất lượng 80% (giảm dung lượng tiếp)
+            
+            // Encode
             $encodedImage = $image->toJpeg(quality: 80);
 
-            // 4. Lưu vào Storage
+            // Lưu file
             Storage::disk('public')->put($path, $encodedImage);
 
-            // Cập nhật đường dẫn vào data
+            // Gán đường dẫn lưu DB
             $data['avatar_url'] = $path;
         }
 
-        // Loại bỏ password rỗng nếu user không nhập
-        if (empty($data['password'])) {
+        // 2. Xử lý Password (HASH)
+        if (!empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
             unset($data['password']);
         }
 
-        // Gọi repository để update vào DB
+        unset($data['email']);
+
+        // 3. Update DB
         return $this->userRepository->update($user, $data)->fresh();
     }
 }

@@ -8,16 +8,15 @@ use App\Http\Requests\Api\GetProductListRequest;
 use App\Http\Resources\Api\ProductResource;
 use App\Http\Resources\Api\ProductDetailResource;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProductController extends Controller
 {
-    protected $productService;
+    public function __construct(
+        protected ProductService $productService
+    ) {}
 
-    public function __construct(ProductService $productService)
-    {
-        $this->productService = $productService;
-    }
-
+    // API 1: Lấy danh sách + Lọc + Phân trang
     public function index(GetProductListRequest $request): JsonResponse
     {
         try {
@@ -29,10 +28,11 @@ class ProductController extends Controller
                 'data'    => ProductResource::collection($products)->response()->getData(true)
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+            return response()->json(['status' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
         }
     }
 
+    // API 2: Lấy chi tiết + SP liên quan
     public function show($id): JsonResponse
     {
         try {
@@ -43,9 +43,11 @@ class ProductController extends Controller
                 'message' => 'Lấy chi tiết sản phẩm thành công',
                 'data'    => new ProductDetailResource($product)
             ], 200);
+            
+        } catch (ModelNotFoundException $e) {
+            return response()->json(['status' => false, 'message' => 'Sản phẩm không tồn tại.'], 404);
         } catch (\Exception $e) {
-            $code = $e->getMessage() == "Sản phẩm không tồn tại." ? 404 : 500;
-            return response()->json(['status' => false, 'message' => $e->getMessage()], $code);
+            return response()->json(['status' => false, 'message' => 'Lỗi: ' . $e->getMessage()], 500);
         }
     }
 }

@@ -17,8 +17,7 @@ class BrandService
 
     public function getAllBrands(): Collection
     {
-        // Tối ưu: Cache dữ liệu để giảm tải DB
-        return Cache::remember('api_brands_list', 60 * 60 * 24, function () { // Cache 1 ngày
+        return Cache::remember('api_brands_list', 60 * 60 * 24, function () {
             return $this->brandRepo->getAll();
         });
     }
