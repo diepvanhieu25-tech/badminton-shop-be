@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Services\Api\AuthService;
 use Laravel\Socialite\Facades\Socialite;
-use Illuminate\Support\Facades\Cookie;
 
 class SocialAuthController extends Controller
 {
@@ -61,10 +60,6 @@ class SocialAuthController extends Controller
             return redirect()->to($frontendUrl . '/')
                 ->withCookie($cookie);
         } catch (\Exception $e) {
-            // Log lỗi
-            \Illuminate\Support\Facades\Log::error("Social Login Error: " . $e->getMessage());
-
-            // Redirect về trang login FE kèm lỗi
             return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login');
         }
     }
