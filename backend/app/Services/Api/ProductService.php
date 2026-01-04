@@ -3,37 +3,30 @@
 namespace App\Services\Api;
 
 use App\Repositories\Interfaces\Api\ProductRepositoryInterface;
-use Illuminate\Support\Facades\Cache;
-use Exception;
 
 class ProductService
 {
-    protected $productRepo;
+    public function __construct(
+        protected ProductRepositoryInterface $productRepo
+    ) {}
 
-    public function __construct(ProductRepositoryInterface $productRepo)
+    public function getProducts(array $filters)
     {
-        $this->productRepo = $productRepo;
-    }
-
-    public function getProducts(array $validatedData)
-    {
-        $limit = $validatedData['limit'] ?? 20;
-
-        return $this->productRepo->getList($validatedData, $limit);
+        // Gọi thẳng Repo, không cache
+        return $this->productRepo->getList($filters);
     }
 
     public function getProductDetail($id)
     {
-        // Cache chi tiết sản phẩm trong 1 giờ
-        $cacheKey = "product_detail_{$id}";
+        // 1. Lấy chi tiết
+        $product = $this->productRepo->findDetail($id);
 
-        return Cache::remember($cacheKey, 3600, function () use ($id) {
-            $product = $this->productRepo->findDetail($id);
+        // 2. Lấy thêm sản phẩm liên quan
+        $related = $this->productRepo->getRelated($product->id, $product->category_id);
+        
+        // Gán vào object product để Resource xử lý
+        $product->related_products = $related;
 
-            if (!$product) {
-                throw new Exception("Sản phẩm không tồn tại.");
-            }
-            return $product;
-        });
+        return $product;
     }
 }
