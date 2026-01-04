@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\BrandController;
 use App\Http\Controllers\Api\V1\AuthController as V1AuthController;
 use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
+use App\Http\Controllers\Api\V1\OrderController;
+use App\Http\Controllers\Api\V1\PaymentController;
 use App\Http\Controllers\Api\V1\ProductController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\SocialAuthController;
@@ -24,7 +26,15 @@ Route::prefix('v1/products')->group(function () {
     Route::get('/{id}', [ProductController::class, 'show']);
 });
 
-Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
+// Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
+//     Route::get('/', [CartController::class, 'index']);           
+//     Route::post('/items', [CartController::class, 'addToCart']); 
+//     Route::delete('/clear', [CartController::class, 'clear']); 
+//     Route::put('/select', [CartController::class, 'updateSelection']);
+//     Route::put('/items/{item_id}', [CartController::class, 'updateItem']); 
+//     Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); 
+// });
+Route::prefix('v1/cart')->group(function () {
     Route::get('/', [CartController::class, 'index']);           
     Route::post('/items', [CartController::class, 'addToCart']); 
     Route::delete('/clear', [CartController::class, 'clear']); 
@@ -32,7 +42,22 @@ Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
     Route::put('/items/{item_id}', [CartController::class, 'updateItem']); 
     Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); 
 });
-
+Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
+    // Đặt hàng
+    Route::post('/', [OrderController::class, 'store']);
+    Route::get('/', [OrderController::class, 'index']);
+    Route::get('/{code}', [OrderController::class, 'show']);
+    Route::put('/{code}/cancel', [OrderController::class, 'cancel']);
+    Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
+});
+Route::get('v1/payment/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
+// Route::prefix('v1/orders')->group(function () {
+//     Route::post('/', [OrderController::class, 'store']);
+//     Route::get('/', [OrderController::class, 'index']);
+//     Route::get('/{code}', [OrderController::class, 'show']);
+//     Route::put('/{code}/cancel', [OrderController::class, 'cancel']);
+//     Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
+// });
 Route::prefix('v1/auth')->group(function () {
     // POST /api/v1/auth/register
     Route::post('/register', [V1AuthController::class, 'register']);
