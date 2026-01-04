@@ -36,7 +36,6 @@ Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
-    // Đặt hàng
     Route::post('/', [OrderController::class, 'store']);
     Route::get('/', [OrderController::class, 'index']);
     Route::get('/{code}', [OrderController::class, 'show']);
@@ -46,12 +45,10 @@ Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
 Route::get('v1/payment/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
 
 Route::prefix('v1/auth')->group(function () {
-    // POST /api/v1/auth/register
-    Route::post('/register', [V1AuthController::class, 'register']);
-    // POST /api/v1/auth/login
-    Route::post('/login', [V1AuthController::class, 'login']);
 
-    // Protected routes (Phải đăng nhập mới gọi được)
+    Route::post('/register', [V1AuthController::class, 'register']);
+    Route::post('/login', [V1AuthController::class, 'login'])->middleware('throttle:5,1');
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [V1AuthController::class, 'logout']);
         Route::get('/me', [ProfileController::class, 'show']);

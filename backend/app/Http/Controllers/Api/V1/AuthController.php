@@ -8,7 +8,7 @@ use App\Http\Requests\Api\RegisterRequest;
 use App\Http\Resources\Api\UserResource;
 use App\Services\Api\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cookie;
+use Laravel\Socialite\Facades\Socialite;
 
 class AuthController extends Controller
 {
@@ -25,17 +25,7 @@ class AuthController extends Controller
         $result = $this->authService->register($validatedData);
 
         // 3. Tạo Cookie HttpOnly (FE không đọc được, nhưng Browser tự lưu)
-        $cookie = cookie(
-            'access_token',          // Key
-            $result['access_token'], // Value
-            60 * 24 * 30,            // 30 ngày
-            '/',                     // Path
-            null,                    // Domain
-            true,                    // Secure (HTTPS)
-            true,                    // HttpOnly -> QUAN TRỌNG
-            false,                   // Raw
-            'Strict'                 // SameSite
-        );
+        $cookie = $this->makeAuthCookie($result['access_token']);
 
         // 4. Return JSON + Cookie
         return response()->json([
@@ -54,17 +44,7 @@ class AuthController extends Controller
         $result = $this->authService->login($credentials);
 
         // 3. Tạo Cookie (Copy y chang bên Register)
-        $cookie = cookie(
-            'access_token',
-            $result['access_token'],
-            60 * 24 * 30, // 30 ngày
-            '/',
-            null,
-            true,
-            true,
-            false,
-            'Strict'
-        );
+        $cookie = $this->makeAuthCookie($result['access_token']);
 
         // 4. Trả về kết quả
         return response()->json([
@@ -78,16 +58,66 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        // 1. Xóa token trong DB
-        $this->authService->logout();
+        // 1. Xóa token của thiết bị hiện tại (Nếu user có đăng nhập)
+        $request->user()?->currentAccessToken()->delete();
 
-        // 2. Tạo lệnh xóa Cookie
-        $cookie = Cookie::forget('access_token');
-
-        // 3. Trả về response kèm lệnh xóa cookie
+        // 2. Xóa Cookie và trả về JSON
         return response()->json([
             'status' => 'success',
             'message' => 'Đăng xuất thành công',
-        ], 200)->withCookie($cookie);
+        ])->withCookie(cookie()->forget('access_token'));
+    }
+
+    /**
+     * Bước 1: Redirect user sang trang Google/Facebook
+     */
+    public function redirectToProvider($provider)
+    {
+        /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
+        $driver = Socialite::driver($provider);
+
+        return $driver->stateless()->redirect();
+    }
+
+    /**
+     * Bước 2: Google redirect ngược về đây kèm thông tin User
+     */
+    public function handleProviderCallback($provider)
+    {
+        try {
+            $driver = Socialite::driver($provider);
+
+            /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
+            $socialUser = $driver->stateless()->user();
+
+            // Gọi Service xử lý logic tìm/tạo user
+            $result = $this->authService->handleSocialCallback($provider, $socialUser);
+
+            // Tạo Cookie HttpOnly
+            $cookie = $this->makeAuthCookie($result['access_token']);
+
+            // Redirect về Frontend
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+
+            return redirect()->to($frontendUrl . '/')
+                ->withCookie($cookie);
+        } catch (\Exception $e) {
+            return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login');
+        }
+    }
+
+    private function makeAuthCookie($token)
+    {
+        return cookie(
+            'access_token',
+            $token,
+            60 * 24 * 30,
+            '/',
+            null,
+            true,
+            true,
+            false,
+            'Strict'
+        );
     }
 }
