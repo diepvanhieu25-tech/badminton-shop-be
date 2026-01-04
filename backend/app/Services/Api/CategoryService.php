@@ -15,15 +15,13 @@ class CategoryService
         $this->categoryRepo = $categoryRepo;
     }
 
-    public function getCategories(array $validatedData): Collection
+    public function getCategories(array $params)
     {
-        $parentId = $validatedData['parent_id'] ?? null;
+        $parentId = $params['parent_id'] ?? null;
+        
+        $cacheKey = 'api_categories_' . ($parentId ?? 'root');
 
-        // Tạo Key Cache: category_tree_root hoặc category_tree_5
-        $cacheKey = 'category_tree_' . ($parentId ?? 'root');
-
-        // Cache 1 ngày (86400 giây)
-        return Cache::remember($cacheKey, 86400, function () use ($parentId) {
+        return Cache::remember($cacheKey, 60 * 60 * 24, function () use ($parentId) {
             return $this->categoryRepo->getList($parentId);
         });
     }
