@@ -2,15 +2,30 @@
 
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 Route::get('/admin', fn() => view('admin.dashboard.index'));
-Route::get('/admin/products', fn() => view('admin.products.index'));
-Route::get('/admin/products/create', fn() => view('admin.products.create'));
-Route::get('/admin/products/{id}/edit', fn() => view('admin.products.edit'));
+
+Route::prefix('admin/products')
+    ->name('admin.products.')
+    ->group(function () {
+
+        Route::get('/', [ProductController::class, 'index'])->name('index');
+
+        Route::get('create', [ProductController::class, 'create'])->name('create');
+        Route::post('/', [ProductController::class, 'store'])->name('store');
+
+        Route::get('{product}', [ProductController::class, 'detail'])->name('detail');
+
+        Route::get('{product}/edit', [ProductController::class, 'edit'])->name('edit');
+        Route::put('{product}', [ProductController::class, 'update'])->name('update');
+
+        Route::delete('{product}', [ProductController::class, 'destroy'])->name('destroy');
+    });
 
 Route::prefix('admin/orders')->name('admin.orders.')->group(function () {
     Route::get('/', [OrderController::class, 'index'])->name('index');
