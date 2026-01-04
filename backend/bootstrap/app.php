@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\AttachTokenFromCookie;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             AttachTokenFromCookie::class,
         ]);
+        $middleware->alias([
+        'admin' => AdminMiddleware::class,
+    ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -71,4 +71,11 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')
             ->with('success', 'Xóa sản phẩm thành công!');
     }
+
+    public function show(Product $product): View
+    {
+        $product->load(['category', 'brand', 'variants', 'images']);
+
+        return view('admin.products.show', compact('product'));
+    }
 }

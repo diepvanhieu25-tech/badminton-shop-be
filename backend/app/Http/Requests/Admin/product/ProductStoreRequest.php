@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Admin\product;
 
-use App\Enums\ProductStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rules\Enum;
 
 class ProductStoreRequest extends FormRequest
 {
@@ -16,29 +14,30 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'           => ['required', 'string', 'max:255'],
-            'category_id'    => ['required', 'exists:categories,id'],
-            'brand_id'       => ['nullable', 'exists:brands,id'],
-            'description'    => ['nullable', 'string'],
-            'status'         => ['required', new Enum(ProductStatus::class)],
-            'is_featured'    => ['boolean'],
-            'thumbnail'      => ['nullable', 'image', 'max:2048'], // Ảnh đại diện chính
-            'gallery.*'      => ['nullable', 'image', 'max:2048'], // Album ảnh
-            'has_variants'   => ['boolean'],
-
-            // === Validate cho sản phẩm đơn (Không có biến thể) ===
-            'sku'            => ['nullable', 'required_if:has_variants,0', 'unique:products,sku'],
-            'price'          => ['nullable', 'required_if:has_variants,0', 'numeric', 'min:0'],
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:50', 'unique:products,sku'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'brand_id' => ['nullable', 'exists:brands,id'],
+            'price' => ['required', 'numeric', 'min:0'],
             'original_price' => ['nullable', 'numeric', 'min:0'],
+            'description' => ['nullable', 'string'],
+            'content' => ['nullable', 'string'],
+            'status' => ['required', 'in:active,inactive,draft'],
+            'is_featured' => ['boolean'],
+            
+            // Validate Ảnh
+            'thumbnail' => ['nullable', 'image', 'max:2048'], // 2MB
+            'gallery' => ['nullable', 'array'],
+            'gallery.*' => ['image', 'max:2048'],
 
-            // === Validate cho biến thể (Nếu has_variants = 1) ===
-            'variants'                 => ['array', 'required_if:has_variants,1'],
-            'variants.*.sku'           => ['required_with:variants', 'distinct', 'unique:product_variants,sku'],
-            'variants.*.price'         => ['required_with:variants', 'numeric', 'min:0'],
-            'variants.*.original_price'=> ['nullable', 'numeric', 'min:0'],
-            'variants.*.stock_qty'     => ['required_with:variants', 'integer', 'min:0'],
-            // attributes vd: {"color": "Red", "size": "L"}
-            'variants.*.attributes'    => ['nullable', 'array'], 
+            // Validate Biến thể (Quan trọng)
+            'has_variants' => ['boolean'],
+            'variants' => ['nullable', 'array', 'required_if:has_variants,1'],
+            'variants.*.sku' => ['required_if:has_variants,1', 'string', 'distinct'],
+            'variants.*.price' => ['required_if:has_variants,1', 'numeric', 'min:0'],
+            'variants.*.stock_qty' => ['required_if:has_variants,1', 'integer', 'min:0'],
+            'variants.*.attributes.size' => ['nullable', 'string'],
+            'variants.*.attributes.color' => ['nullable', 'string'],
         ];
     }
 }
