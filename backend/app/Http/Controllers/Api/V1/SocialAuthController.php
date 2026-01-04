@@ -58,14 +58,14 @@ class SocialAuthController extends Controller
             // Redirect về Frontend
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-            return redirect()->to($frontendUrl . '/dashboard')
+            return redirect()->to($frontendUrl . '/')
                 ->withCookie($cookie);
         } catch (\Exception $e) {
             // Log lỗi
             \Illuminate\Support\Facades\Log::error("Social Login Error: " . $e->getMessage());
 
             // Redirect về trang login FE kèm lỗi
-            return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login?error=social_login_failed');
+            return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login');
         }
     }
 }
