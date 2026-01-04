@@ -27,12 +27,12 @@ Route::prefix('v1/products')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->prefix('v1/cart')->group(function () {
-    Route::get('/', [CartController::class, 'index']);           
-    Route::post('/items', [CartController::class, 'addToCart']); 
-    Route::delete('/clear', [CartController::class, 'clear']); 
+    Route::get('/', [CartController::class, 'index']);
+    Route::post('/items', [CartController::class, 'addToCart']);
+    Route::delete('/clear', [CartController::class, 'clear']);
     Route::put('/select', [CartController::class, 'updateSelection']);
-    Route::put('/items/{item_id}', [CartController::class, 'updateItem']); 
-    Route::delete('/items/{item_id}', [CartController::class, 'removeItem']); 
+    Route::put('/items/{item_id}', [CartController::class, 'updateItem']);
+    Route::delete('/items/{item_id}', [CartController::class, 'removeItem']);
 });
 
 Route::middleware('auth:sanctum')->prefix('v1/orders')->group(function () {
@@ -54,6 +54,7 @@ Route::prefix('v1/auth')->group(function () {
     // Protected routes (Phải đăng nhập mới gọi được)
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [V1AuthController::class, 'logout']);
+        Route::get('/me', [ProfileController::class, 'show']);
         Route::post('/me', [ProfileController::class, 'update']);
     });
 
