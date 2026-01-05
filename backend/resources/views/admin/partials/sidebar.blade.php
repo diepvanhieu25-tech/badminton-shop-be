@@ -44,8 +44,8 @@
         </a>
 
         {{-- Lưu ý: Mình sửa route cứng thành route('admin.orders.index') nếu bạn đã định nghĩa --}}
-        <a href="/admin/order/index" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group {{ request()->is('admin/orders*') ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
+        <a href="{{ route('admin.orders.index') }}" 
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group {{ request()->routeIs('admin.orders*') ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
             <div class="w-6 text-center">
                 <i class="fa-solid fa-file-invoice-dollar text-lg group-hover:scale-110 transition-transform"></i>
             </div>

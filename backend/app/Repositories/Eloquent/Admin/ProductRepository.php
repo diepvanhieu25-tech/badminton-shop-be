@@ -3,88 +3,231 @@
 namespace App\Repositories\Eloquent\Admin;
 
 use App\Models\Product;
-use App\Models\ProductImage;
 use App\Models\ProductVariant;
+use App\Models\ProductImage;
 use App\Repositories\Interfaces\Admin\ProductRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class ProductRepository implements ProductRepositoryInterface
 {
-    public function paginate(array $filters = [], int $perPage = 10): LengthAwarePaginator
+    public function paginate(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = Product::query()->with(['category', 'brand']);
-
-        if (!empty($filters['search'])) {
-            $query->where('name', 'like', "%{$filters['search']}%")
-                  ->orWhere('sku', 'like', "%{$filters['search']}%");
-        }
-
-        if (!empty($filters['category_id'])) {
-            $query->where('category_id', $filters['category_id']);
-        }
-
-        return $query->orderByDesc('id')->paginate($perPage);
+        return $this->paginateWithFilters($filters, $perPage);
     }
 
-    public function find(int $id): ?Product
+    public function paginateWithFilters(array $filters, int $perPage = 10)
     {
-        return Product::with(['variants', 'images'])->findOrFail($id);
+        return Product::query()
+            ->with(['images', 'variants', 'category'])
+
+            // SEARCH
+            ->when(!empty($filters['q']), function ($query) use ($filters) {
+                $q = $filters['q'];
+
+                $query->where(function ($sub) use ($q) {
+                    $sub->where('name', 'like', "%{$q}%")
+                        ->orWhere('sku', 'like', "%{$q}%");
+                });
+            })
+
+            // STATUS
+            ->when(!empty($filters['status']), function ($query) use ($filters) {
+                $query->where('status', $filters['status']);
+            })
+
+            // CATEGORY
+            ->when(!empty($filters['category_id']), function ($query) use ($filters) {
+                $query->where('category_id', $filters['category_id']);
+            })
+
+            ->latest()
+            ->paginate($perPage);
     }
+
+    public function findById(int $id): Product
+    {
+        return Product::with([
+            'brand:id,name',
+            'category:id,name',
+            'variants',
+            'images' => fn ($q) => $q->orderBy('sort_order'),
+        ])->findOrFail($id);
+    }
+
+    /* =========================
+     * CREATE
+     * ========================= */
 
     public function create(array $data): Product
     {
-        return Product::create($data);
+        [$variants, $images] = $this->extractNestedData($data);
+
+        $data['thumbnail'] = $this->storeThumbnail($data['thumbnail'] ?? null);
+
+        $product = Product::create($data);
+
+        $this->syncVariants($product, $variants);
+        $this->storeImages($product, $images);
+
+        return $this->findById($product->id);
     }
+
+    /* =========================
+     * UPDATE
+     * ========================= */
 
     public function update(Product $product, array $data): Product
     {
-        $product->update($data);
-        return $product;
-    }
+        [$variants, $newImages, $existingImages] = $this->extractNestedData($data, true);
 
-    public function delete(Product $product): bool
-    {
-        return $product->delete();
-    }
-
-    // === Xử lý Variants ===
-    public function createVariants(Product $product, array $variants): void
-    {
-        foreach ($variants as $variantData) {
-            $product->variants()->create($variantData);
+        if (!empty($data['thumbnail'])) {
+            $data['thumbnail'] = $this->storeThumbnail($data['thumbnail']);
+        } else {
+            unset($data['thumbnail']);
         }
+
+        $product->update($data);
+
+        if (array_key_exists('status', $data)) {
+            $product->status = $data['status'];
+            $product->save();
+        }
+
+        $this->syncVariants($product, $variants);
+        $this->syncExistingImages($product, $existingImages);
+        $this->storeImages($product, $newImages);
+
+        return $this->findById($product->id);
     }
 
-    public function updateVariants(Product $product, array $variants): void
-    {
-        // 1. Lấy danh sách ID variant hiện tại trong DB
-        $currentVariantIds = $product->variants()->pluck('id')->toArray();
-        $submittedIds = [];
+    /* =========================
+     * DELETE
+     * ========================= */
 
-        foreach ($variants as $data) {
-            if (isset($data['id']) && $data['id']) {
-                // Update
-                $submittedIds[] = $data['id'];
-                ProductVariant::where('id', $data['id'])->update($data);
+    public function delete(Product $product): void
+    {
+        $product->delete();
+    }
+
+    /* =========================
+     * VARIANTS
+     * ========================= */
+
+    private function syncVariants(Product $product, array $variants): void
+    {
+        foreach ($variants as $v) {
+            $id = $v['id'] ?? null;
+            $delete = !empty($v['_delete']);
+
+            if ($id) {
+                $variant = ProductVariant::where('product_id', $product->id)
+                    ->where('id', $id)
+                    ->first();
+
+                if (!$variant) continue;
+
+                if ($delete) {
+                    $variant->delete();
+                    continue;
+                }
+
+                $variant->update($this->mapVariantData($product, $v));
             } else {
-                // Create new trong lúc update
-                $product->variants()->create($data);
+                if ($delete) continue;
+
+                ProductVariant::create(
+                    $this->mapVariantData($product, $v)
+                );
             }
         }
+    }
 
-        // 2. Xóa các variant không còn tồn tại trong request
-        $idsToDelete = array_diff($currentVariantIds, $submittedIds);
-        if (!empty($idsToDelete)) {
-            ProductVariant::destroy($idsToDelete);
+    private function mapVariantData(Product $product, array $v): array
+    {
+        return [
+            'product_id'     => $product->id,
+            'sku'            => $v['sku'] ?? null,
+            'attributes'     => $this->decodeJson($v['attributes_json'] ?? null),
+            'price'          => $v['price'] ?? 0,
+            'original_price' => $v['original_price'] ?? 0,
+            'stock_qty'      => $v['stock_qty'] ?? 0,
+            'stock_alert'    => $v['stock_alert'] ?? 0,
+        ];
+    }
+
+    /* =========================
+     * IMAGES
+     * ========================= */
+
+    private function storeImages(Product $product, array $files): void
+    {
+        $startOrder = (int) ($product->images()->max('sort_order') ?? 0);
+
+        foreach ($files as $i => $file) {
+            if (!$file instanceof UploadedFile) continue;
+
+            $path = $file->store('uploads/products', 'public');
+
+            ProductImage::create([
+                'product_id' => $product->id,
+                'image_url'  => $path,
+                'sort_order' => $startOrder + $i + 1,
+            ]);
         }
     }
 
-    // === Xử lý Images ===
-    public function createImages(Product $product, array $imagesData): void
+    private function syncExistingImages(Product $product, array $images): void
     {
-        // $imagesData = [['image_url' => 'path/a.jpg', 'sort_order' => 0], ...]
-        foreach ($imagesData as $img) {
-            $product->images()->create($img);
+        foreach ($images as $img) {
+            $image = ProductImage::where('product_id', $product->id)
+                ->where('id', $img['id'])
+                ->first();
+
+            if (!$image) continue;
+
+            if (!empty($img['_delete'])) {
+                $image->delete();
+                continue;
+            }
+
+            // Không cho user nhập → giữ nguyên sort
         }
+    }
+
+    /* =========================
+     * HELPERS
+     * ========================= */
+
+    private function storeThumbnail(?UploadedFile $file): ?string
+    {
+        if (!$file) return null;
+        return $file->store('uploads/products', 'public');
+    }
+
+    private function extractNestedData(array &$data, bool $isUpdate = false): array
+    {
+        $variants = $data['variants'] ?? [];
+        $images   = $data['images'] ?? [];
+
+        $existingImages = $isUpdate ? ($data['existing_images'] ?? []) : [];
+
+        unset(
+            $data['variants'],
+            $data['images'],
+            $data['existing_images']
+        );
+
+        return $isUpdate
+            ? [$variants, $images, $existingImages]
+            : [$variants, $images];
+    }
+
+    private function decodeJson(?string $json): array
+    {
+        if (!$json) return [];
+        $decoded = json_decode($json, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }

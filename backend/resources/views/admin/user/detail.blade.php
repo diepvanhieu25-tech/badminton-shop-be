@@ -130,7 +130,7 @@
                                         };
                                     @endphp
                                     <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold border {{ $statusClass }}">
-                                        {{ ucfirst($order->status ?? 'Pending') }}
+                                        {{ ucfirst($order->status->value) }}
                                     </span>
                                 </td>
                             </tr>
