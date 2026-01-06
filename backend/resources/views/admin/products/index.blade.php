@@ -3,165 +3,188 @@
 @section('title', 'Quản lý sản phẩm')
 
 @section('content')
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <h1 class="text-2xl font-bold text-slate-800">Danh sách sản phẩm</h1>
-        <p class="text-sm text-slate-500">Quản lý kho hàng và giá cả.</p>
-    </div>
-    <a href="{{ route('admin.products.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition font-medium shadow-md shadow-emerald-100">
-        <i class="fa-solid fa-plus"></i> Thêm sản phẩm
+
+{{-- HEADER --}}
+<div class="mb-6 flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-slate-800">Sản phẩm</h1>
+
+    <a href="{{ route('admin.products.create') }}"
+       class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd" />
+        </svg>
+        Thêm mới
     </a>
 </div>
 
-<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-    {{-- FILTER FORM --}}
-    <div class="p-5 border-b border-slate-200 bg-slate-50">
-        <form action="{{ route('admin.products.index') }}" method="GET" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="text-xs font-semibold text-slate-500 mb-1 block">Tìm kiếm</label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fa-solid fa-magnifying-glass text-slate-400"></i>
-                    </div>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Tên sản phẩm, SKU..." 
-                        class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-200 outline-none text-sm">
-                </div>
-            </div>
-            
-            <div class="w-48">
-                <label class="text-xs font-semibold text-slate-500 mb-1 block">Danh mục</label>
-                <select name="category_id" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm focus:ring-2 focus:ring-emerald-200">
-                    <option value="">Tất cả</option>
-                    {{-- Giả sử Controller truyền $categories sang --}}
-                    @foreach($categories ?? [] as $cat)
-                        <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <button type="submit" class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 text-sm font-medium transition">
-                <i class="fa-solid fa-filter"></i> Lọc
-            </button>
-            <a href="{{ route('admin.products.index') }}" class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 text-sm font-medium transition">
-                <i class="fa-solid fa-rotate-right"></i> Reset
-            </a>
-        </form>
+{{-- FLASH MESSAGE --}}
+@if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+        {{ session('success') }}
     </div>
+@endif
 
-    {{-- TABLE --}}
+<form method="GET"
+      class="bg-white rounded-lg border border-slate-200 p-4 mb-5
+             flex flex-wrap gap-3 items-center">
+
+    {{-- SEARCH --}}
+    <input
+        type="text"
+        name="q"
+        value="{{ request('q') }}"
+        placeholder="Tìm tên sản phẩm, SKU..."
+        class="px-4 py-2.5 rounded-lg border border-slate-300
+               focus:border-blue-500 focus:ring-2 focus:ring-blue-200
+               transition w-64"
+    />
+
+    {{-- STATUS --}}
+    <select name="status"
+            class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white"
+            onchange="this.form.submit()">
+        <option value="">Tất cả trạng thái</option>
+        <option value="active" @selected(request('status')==='active')>Active</option>
+        <option value="draft" @selected(request('status')==='draft')>Draft</option>
+        <option value="inactive" @selected(request('status')==='inactive')>Inactive</option>
+    </select>
+
+    {{-- CATEGORY --}}
+    <select name="category_id"
+            class="px-4 py-2.5 rounded-lg border border-slate-300 bg-white"
+            onchange="this.form.submit()">
+        <option value="">Tất cả danh mục</option>
+        @foreach($categories as $category)
+            <option value="{{ $category->id }}"
+                @selected(request('category_id') == $category->id)>
+                {{ $category->name }}
+            </option>
+        @endforeach
+    </select>
+
+    {{-- RESET --}}
+    @if(request()->hasAny(['q','status','category_id']))
+        <a href="{{ route('admin.products.index') }}"
+           class="px-4 py-2.5 rounded-lg border border-slate-300
+                  bg-white text-slate-600 hover:bg-slate-100 transition">
+            Reset
+        </a>
+    @endif
+</form>
+
+{{-- TABLE --}}
+<div class="bg-white shadow-sm rounded-lg overflow-hidden border border-slate-200">
     <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left">
-            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-xs tracking-wider border-b border-slate-200">
+        <table class="w-full text-sm text-left text-slate-600">
+            <thead class="text-xs text-slate-700 uppercase bg-slate-50 border-b">
                 <tr>
-                    <th class="px-6 py-4 w-16">ID</th>
-                    <th class="px-6 py-4">Sản phẩm</th>
-                    <th class="px-6 py-4">Giá bán</th>
-                    <th class="px-6 py-4 text-center">Tồn kho</th>
-                    <th class="px-6 py-4">Trạng thái</th>
-                    <th class="px-6 py-4 text-right">Hành động</th>
+                    <th class="px-6 py-3 font-semibold">Sản phẩm</th>
+                    <th class="px-6 py-3 font-semibold">Giá</th>
+                    <th class="px-6 py-3 font-semibold">Trạng thái</th>
+                    <th class="px-6 py-3 font-semibold text-right">Hành động</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
-                @forelse($products as $product)
-                <tr class="hover:bg-slate-50 transition duration-150">
-                    <td class="px-6 py-4 text-slate-500">#{{ $product->id }}</td>
-                    <td class="px-6 py-4">
-                        <div class="flex items-start gap-3">
-                            {{-- Ảnh đại diện --}}
-                            <div class="shrink-0 h-12 w-12 rounded-lg border border-slate-200 overflow-hidden bg-white">
-                                @if($product->thumbnail)
-                                    <img src="{{ Storage::url($product->thumbnail) }}" class="h-full w-full object-cover">
-                                @else
-                                    <div class="h-full w-full flex items-center justify-center bg-slate-50 text-slate-400">
-                                        <i class="fa-regular fa-image"></i>
-                                    </div>
-                                @endif
+
+            <tbody>
+            @forelse($products as $product)
+                @php
+                    $thumb = $product->thumbnail
+                        ? Storage::url($product->thumbnail)
+                        : ($product->images->first()
+                            ? asset($product->images->first()->image_url)
+                            : null);
+
+                    $displayPrice = $product->variants->count()
+                        ? $product->variants->min('price')
+                        : $product->price;
+
+                    $status = $product->status instanceof \BackedEnum
+                        ? $product->status->value
+                        : ($product->status ?? 'draft');
+
+                    $statusColors = [
+                        'active'   => 'bg-green-100 text-green-800',
+                        'draft'    => 'bg-gray-100 text-gray-800',
+                        'inactive' => 'bg-red-100 text-red-800',
+                    ];
+                @endphp
+
+                <tr class="border-b hover:bg-slate-50 transition">
+                    {{-- PRODUCT --}}
+                    <td class="px-6 py-4 flex items-center gap-4">
+                        @if($thumb)
+                            <img src="{{ $thumb }}" class="w-12 h-12 rounded object-cover border">
+                        @else
+                            <div class="w-12 h-12 rounded bg-slate-100 flex items-center justify-center text-xs text-slate-400">
+                                No Img
                             </div>
-                            
-                            {{-- Tên & SKU --}}
-                            <div>
-                                <a href="{{ route('admin.products.show', $product) }}" class="font-semibold text-slate-900 hover:text-emerald-600 line-clamp-1">
+                        @endif
+
+                        <div>
+                            <div class="font-medium text-slate-900">
+                                <a href="{{ route('admin.products.detail', $product) }}" class="hover:underline">
                                     {{ $product->name }}
                                 </a>
-                                <div class="text-xs text-slate-500 mt-0.5">SKU: {{ $product->sku ?? 'N/A' }}</div>
-                                <div class="text-xs text-slate-400">{{ $product->category->name ?? '---' }}</div>
+                            </div>
+                            <div class="text-xs text-slate-500">
+                                SKU: {{ $product->sku ?? '—' }}
                             </div>
                         </div>
                     </td>
-                    
-                    {{-- Giá bán (Xử lý khoảng giá nếu có biến thể) --}}
+
+                    {{-- PRICE --}}
                     <td class="px-6 py-4 font-medium text-slate-900">
-                        @if($product->has_variants && $product->variants_count > 0)
-                            <span class="text-xs text-slate-500">Từ</span> 
-                            {{ number_format($product->variants->min('price')) }}₫
-                        @else
-                            {{ number_format($product->price) }}₫
-                            @if($product->original_price > $product->price)
-                                <div class="text-xs text-slate-400 line-through">{{ number_format($product->original_price) }}₫</div>
-                            @endif
+                        {{ number_format($displayPrice) }} đ
+                        @if($product->original_price && $product->original_price > $displayPrice)
+                            <div class="text-xs text-slate-400 line-through">
+                                {{ number_format($product->original_price) }} đ
+                            </div>
                         @endif
                     </td>
 
-                    {{-- Tồn kho (Tổng các biến thể) --}}
-                    <td class="px-6 py-4 text-center">
-                        @php
-                            $stock = $product->has_variants ? $product->variants->sum('stock_qty') : 'N/A';
-                        @endphp
-                        @if(is_numeric($stock) && $stock == 0)
-                            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-700">Hết hàng</span>
-                        @else
-                            <span class="text-slate-600 font-semibold">{{ $stock }}</span>
-                        @endif
-                    </td>
-
-                    {{-- Trạng thái --}}
+                    {{-- STATUS --}}
                     <td class="px-6 py-4">
-                        @php
-                            $statusMap = [
-                                'active' => ['color' => 'bg-emerald-100 text-emerald-700', 'icon' => 'fa-circle-check', 'label' => 'Công khai'],
-                                'draft' => ['color' => 'bg-slate-100 text-slate-700', 'icon' => 'fa-file-pen', 'label' => 'Bản nháp'],
-                                'inactive' => ['color' => 'bg-rose-100 text-rose-700', 'icon' => 'fa-circle-xmark', 'label' => 'Ngừng bán'],
-                            ];
-                            $st = $statusMap[$product->status->value] ?? $statusMap['draft'];
-                        @endphp
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border border-transparent {{ $st['color'] }}">
-                            <i class="fa-solid {{ $st['icon'] }}"></i> {{ $st['label'] }}
+                        <span class="{{ $statusColors[$status] ?? 'bg-gray-100 text-gray-800' }}
+                                     text-xs font-medium px-2.5 py-0.5 rounded-full">
+                            {{ ucfirst($status) }}
                         </span>
                     </td>
 
-                    {{-- Hành động --}}
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end items-center gap-2">
-                            <a href="{{ route('admin.products.edit', $product) }}" class="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-emerald-600 hover:border-emerald-200 transition" title="Sửa">
-                                <i class="fa-regular fa-pen-to-square"></i>
-                            </a>
-                            
-                            <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này? hành động này không thể hoàn tác!')">
-                                @csrf @method('DELETE')
-                                <button type="submit" class="p-2 bg-white border border-slate-200 rounded-lg text-slate-600 hover:text-rose-600 hover:border-rose-200 transition" title="Xóa">
-                                    <i class="fa-regular fa-trash-can"></i>
-                                </button>
-                            </form>
-                        </div>
+                    {{-- ACTIONS --}}
+                    <td class="px-6 py-4 text-right space-x-3">
+                        <a href="{{ route('admin.products.edit', $product) }}"
+                           class="text-blue-600 hover:underline">
+                            Sửa
+                        </a>
+
+                        <form action="{{ route('admin.products.destroy', $product) }}"
+                              method="POST"
+                              class="inline"
+                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa?')">
+                            @csrf
+                            @method('DELETE')
+                            <button class="text-red-600 hover:underline">
+                                Xóa
+                            </button>
+                        </form>
                     </td>
                 </tr>
-                @empty
+            @empty
                 <tr>
-                    <td colspan="6" class="px-6 py-12 text-center text-slate-500">
-                        <div class="flex flex-col items-center">
-                            <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-3"></i>
-                            <p>Chưa có sản phẩm nào được tìm thấy.</p>
-                        </div>
+                    <td colspan="4" class="px-6 py-8 text-center text-slate-500">
+                        Chưa có sản phẩm nào.
                     </td>
                 </tr>
-                @endforelse
+            @endforelse
             </tbody>
         </table>
     </div>
-    
-    {{-- PAGINATION --}}
-    <div class="p-4 border-t border-slate-200 bg-slate-50">
+
+    <div class="px-6 py-4 border-t">
         {{ $products->withQueryString()->links() }}
     </div>
 </div>
+
 @endsection

@@ -25,6 +25,9 @@ use App\Repositories\Interfaces\Api\UserRepositoryInterface;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\ServiceProvider;
 
+use App\Repositories\Interfaces\Admin\OrderRepositoryInterface as AdminOrderRepositoryInterface; ;
+use App\Repositories\Eloquent\Admin\OrderRepository as AdminOrderRepository; ;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -32,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->bind(AdminOrderRepositoryInterface::class, AdminOrderRepository::class);
         $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
         $this->app->bind( BrandRepositoryInterface::class, BrandRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
