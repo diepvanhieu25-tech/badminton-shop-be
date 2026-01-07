@@ -15,18 +15,19 @@
         </div>
     </div>
     <div class="flex gap-3">
-        <a href="{{ route('admin.user.edit', $user) }}"
+        <!-- <a href="{{ route('admin.user.edit', $user) }}"
            class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 font-medium transition shadow-sm">
             <i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa
-        </a>
-        <form action="{{ route('admin.user.destroy', $user) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
+        </a> -->
+        
+        <!-- <form action="{{ route('admin.user.destroy', $user) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa khách hàng này?')">
             @csrf
             @method('DELETE')
             <button type="submit"
                     class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 font-medium transition">
                 <i class="fa-regular fa-trash-can"></i> Xóa
             </button>
-        </form>
+        </form> -->
     </div>
 </div>
 
