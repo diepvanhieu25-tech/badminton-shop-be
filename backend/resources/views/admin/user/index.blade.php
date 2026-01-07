@@ -40,11 +40,11 @@
             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
                 <i class="fa-solid fa-filter text-xs"></i>
             </span>
-            <select class="pl-9 pr-8 py-2.5 rounded-lg border border-slate-300 bg-white focus:border-emerald-500 text-sm focus:ring-2 focus:ring-emerald-200 transition cursor-pointer">
+            <!-- <select class="pl-9 pr-8 py-2.5 rounded-lg border border-slate-300 bg-white focus:border-emerald-500 text-sm focus:ring-2 focus:ring-emerald-200 transition cursor-pointer">
                 <option>Tất cả khách hàng</option>
                 <option>Đã mua hàng</option>
                 <option>Chưa mua hàng</option>
-            </select>
+            </select> -->
         </div>
     </div>
 
@@ -92,12 +92,12 @@
                             <div class="flex items-center justify-end gap-2">
                                 <a href="{{ route('admin.user.show', $b) }}"
                                 class="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition" title="Xem chi tiết">
-                                    <i class="fa-regular fa-eye"></i>
+                                    <i class="fa-regular fa-eye"> </i>  Xem thông tin
                                 </a>
-                                <a href="{{ route('admin.user.edit', $b) }}"
+                                <!-- <a href="{{ route('admin.user.edit', $b) }}"
                                 class="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition" title="Chỉnh sửa">
                                     <i class="fa-solid fa-pen"></i>
-                                </a>
+                                </a> -->
                             </div>
                         </td>
                     </tr>
