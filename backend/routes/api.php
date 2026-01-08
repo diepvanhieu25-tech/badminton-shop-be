@@ -32,6 +32,10 @@ Route::prefix('v1')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 
+        // Forgot Password
+        Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+        Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
         // Social Login
         Route::get('/{provider}/redirect', [AuthController::class, 'redirectToProvider']);
         Route::get('/{provider}/callback', [AuthController::class, 'handleProviderCallback']);
@@ -85,11 +89,9 @@ Route::prefix('v1')->group(function () {
             Route::post('/', [OrderController::class, 'store']);           // Tạo đơn mới
             Route::get('/{code}', [OrderController::class, 'show']);       // Chi tiết đơn
             Route::put('/{code}/cancel', [OrderController::class, 'cancel']); // Hủy đơn
-            
+
             // Payment (Tạo URL thanh toán cần user đã login)
             Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
         });
-
-    }); 
-
+    });
 });
