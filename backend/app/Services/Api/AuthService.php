@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Enums\UserStatus;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Repositories\Interfaces\Api\PasswordResetRepositoryInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth;
@@ -13,11 +14,15 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\Interfaces\Api\UserRepositoryInterface;
 use Laravel\Socialite\Contracts\User as SocialUser;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ResetPasswordMail;
+use Exception;
 
 class AuthService
 {
     public function __construct(
-        protected UserRepositoryInterface $userRepository
+        protected UserRepositoryInterface $userRepository,
+        protected PasswordResetRepositoryInterface $passwordResetRepo
     ) {}
 
     // 1. Hàm xử lý Đăng Ký
@@ -123,5 +128,54 @@ class AuthService
 
             return $this->createTokenAndFormatResponse($user);
         });
+    }
+
+    public function forgotPassword(string $email)
+    {
+        // 1. Kiểm tra email có tồn tại trong hệ thống không
+        $user = $this->userRepository->findByEmail($email);
+        if (!$user) {
+            throw new Exception('Email không tồn tại trong hệ thống.');
+        }
+
+        // 2. Tạo token ngẫu nhiên
+        $token = Str::random(60);
+
+        // 3. Lưu token vào DB
+        $this->passwordResetRepo->createToken($email, $token);
+
+        // 4. Gửi email qua Mailtrap
+        // Sử dụng Queue (queue()) nếu muốn chạy nền, ở đây dùng send() cho đơn giản
+        Mail::to($email)->send(new ResetPasswordMail($token, $email));
+
+        return true;
+    }
+
+    /**
+     * Logic 2: Đặt lại mật khẩu mới
+     */
+    public function resetPassword(string $email, string $token, string $newPassword)
+    {
+        // 1. Kiểm tra Token có hợp lệ không
+        $record = $this->passwordResetRepo->findToken($email, $token);
+        if (!$record) {
+            throw new Exception('Token không hợp lệ hoặc đã hết hạn.');
+        }
+
+        // 2. Lấy user
+        $user = $this->userRepository->findByEmail($email);
+        if (!$user) {
+            throw new Exception('Người dùng không tồn tại.');
+        }
+
+        // 3. Cập nhật mật khẩu mới (Hash)
+        $this->userRepository->update($user, [
+            'password' => Hash::make($newPassword)
+        ]);
+
+        // 4. Xóa token để không dùng lại được nữa
+        $this->passwordResetRepo->deleteToken($email);
+
+        return true;
     }
 }

@@ -14,24 +14,24 @@ class PaymentController extends Controller
         protected VnpayService $vnpayService
     ) {}
 
-    // POST /v1/payment/vnpay/create-url
+    // API tạo URL (Frontend gọi để lấy link redirect)
     public function createVnpayUrl(Request $request): JsonResponse
     {
         try {
             $request->validate([
                 'order_code' => 'required|string|exists:orders,code'
             ]);
-            
-            $userId = Auth::id() ?? 1; // Hardcode test
-            
-            $url = $this->vnpayService->createPaymentUrl($userId, $request->order_code);
+
+            $user = Auth::user();
+            if (!$user) return response()->json(['message' => 'Unauthorized'], 401);
+
+            $url = $this->vnpayService->createPaymentUrl($user->id, $request->order_code);
 
             return response()->json([
                 'status'  => true,
                 'message' => 'Tạo URL thanh toán thành công',
-                'data'    => ['url' => $url] 
+                'data'    => ['url' => $url]
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => false,
@@ -40,23 +40,26 @@ class PaymentController extends Controller
         }
     }
 
-    // GET /v1/payment/vnpay/callback
-    public function vnpayCallback(Request $request): JsonResponse
+    public function vnpayCallback(Request $request)
     {
         try {
             $result = $this->vnpayService->handlePaymentCallback($request->all());
 
-            return response()->json([
-                'status'  => $result['success'],
-                'message' => $result['message'],
-                'data'    => $result
-            ], $result['success'] ? 200 : 400);
+            // URL Frontend http://localhost:3000/payment-result
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/payment/result';
 
+            // Tạo query params để gửi kết quả về Frontend hiển thị
+            $queryParams = http_build_query([
+                'success' => $result['success'] ? '1' : '0',
+                'order_code' => $result['order_code'] ?? '',
+                'message' => $result['message']
+            ]);
+
+            // Chuyển hướng trình duyệt về Frontend
+            return redirect("{$frontendUrl}?{$queryParams}");
         } catch (\Exception $e) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Lỗi xử lý: ' . $e->getMessage()
-            ], 500);
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/payment/result';
+            return redirect("{$frontendUrl}?success=0&message=" . urlencode('Lỗi hệ thống'));
         }
     }
 }

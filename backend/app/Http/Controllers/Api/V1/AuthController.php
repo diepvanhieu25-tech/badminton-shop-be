@@ -3,12 +3,15 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ForgotPasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
 use App\Http\Requests\Api\RegisterRequest;
+use App\Http\Requests\Api\ResetPasswordRequest;
 use App\Http\Resources\Api\UserResource;
 use App\Services\Api\AuthService;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\JsonResponse;
 
 class AuthController extends Controller
 {
@@ -119,5 +122,46 @@ class AuthController extends Controller
             false,
             'Strict'
         );
+    }
+
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    {
+        try {
+            $this->authService->forgotPassword($request->email);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vui lòng kiểm tra email để lấy lại mật khẩu.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
+    }
+
+    /**
+     * API: POST /auth/reset-password
+     */
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        try {
+            $this->authService->resetPassword(
+                $request->email,
+                $request->token,
+                $request->password
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Mật khẩu đã được đặt lại thành công.',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
 }

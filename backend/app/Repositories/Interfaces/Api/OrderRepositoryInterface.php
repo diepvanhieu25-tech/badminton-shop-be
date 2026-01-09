@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Repositories\Interfaces\Api;
 
 interface OrderRepositoryInterface
@@ -9,5 +10,6 @@ interface OrderRepositoryInterface
     public function getOrdersByUser(int $userId, int $limit = 10);
     public function getOrderDetail(int $userId, string $code);
     public function findOrderByCode(int $userId, string $code);
+    public function findByCode(string $code);
     public function updatePaymentStatus(string $orderCode, array $paymentData, string $status);
 }
