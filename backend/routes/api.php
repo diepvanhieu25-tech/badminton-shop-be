@@ -94,4 +94,5 @@ Route::prefix('v1')->group(function () {
             Route::post('/payment/vnpay/create-url', [PaymentController::class, 'createVnpayUrl']);
         });
     });
+    Route::get('/payment/vnpay/callback', [PaymentController::class, 'vnpayCallback']);
 });

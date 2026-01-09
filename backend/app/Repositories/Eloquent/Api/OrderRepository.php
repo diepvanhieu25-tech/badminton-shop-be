@@ -38,7 +38,7 @@ class OrderRepository implements OrderRepositoryInterface
         return Order::where('user_id', $userId)
             ->where('code', $code)
             // Eager Load: Lấy luôn Items và Variant để API Resource dùng
-            ->with(['items.variant']) 
+            ->with(['items.variant'])
             ->first();
     }
 
@@ -47,8 +47,13 @@ class OrderRepository implements OrderRepositoryInterface
         return Order::where('user_id', $userId)
             ->where('code', $code)
             // Load items và variant để phục vụ việc hoàn kho trong Service
-            ->with(['items.variant']) 
+            ->with(['items.variant'])
             ->first();
+    }
+
+    public function findByCode(string $code)
+    {
+        return Order::where('code', $code)->first();
     }
 
     public function updatePaymentStatus(string $orderCode, array $paymentData, string $status)
@@ -63,7 +68,7 @@ class OrderRepository implements OrderRepositoryInterface
                 'payment_status' => PaymentStatus::PAID,
                 'status'         => OrderStatus::PROCESSING // Đã trả tiền thì chuyển sang xử lý luôn
             ]);
-            
+
             // Cập nhật bảng Payment chính
             $order->payment()->update([
                 'status' => PaymentStatus::SUCCESS, // Status của Payment Transaction
