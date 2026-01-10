@@ -8,10 +8,10 @@
     </div>
 
     <div class="flex items-center gap-3">
-        <input
+        <!-- <input
             class="hidden md:block w-80 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-300"
             placeholder="Tìm kiếm (tạm)"
-        />
+        /> -->
         <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center font-semibold">A</div>
     </div>
 </header>
