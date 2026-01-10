@@ -89,23 +89,23 @@ class AuthController extends Controller
     {
         try {
             $driver = Socialite::driver($provider);
-
             /** @var \Laravel\Socialite\Two\AbstractProvider $driver */
             $socialUser = $driver->stateless()->user();
 
-            // Gọi Service xử lý logic tìm/tạo user
+            // Service xử lý tìm/tạo user
             $result = $this->authService->handleSocialCallback($provider, $socialUser);
 
-            // Tạo Cookie HttpOnly
+            // Tạo Cookie
             $cookie = $this->makeAuthCookie($result['access_token']);
 
-            // Redirect về Frontend
             $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-            return redirect()->to($frontendUrl . '/')
+            // THÊM: ?login_social=success để báo hiệu cho Frontend
+            return redirect()->to($frontendUrl . '/?login_social=success')
                 ->withCookie($cookie);
         } catch (\Exception $e) {
-            return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/login');
+            // Nếu lỗi thì về lại trang login kèm thông báo
+            return redirect()->to(env('FRONTEND_URL', 'http://localhost:3000') . '/dang-nhap?error=social_failed');
         }
     }
 
