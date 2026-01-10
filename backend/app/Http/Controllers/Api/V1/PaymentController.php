@@ -45,21 +45,18 @@ class PaymentController extends Controller
         try {
             $result = $this->vnpayService->handlePaymentCallback($request->all());
 
-            // URL Frontend http://localhost:3000/payment-result
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/payment/result';
+            $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
-            // Tạo query params để gửi kết quả về Frontend hiển thị
-            $queryParams = http_build_query([
-                'success' => $result['success'] ? '1' : '0',
-                'order_code' => $result['order_code'] ?? '',
-                'message' => $result['message']
-            ]);
-
-            // Chuyển hướng trình duyệt về Frontend
-            return redirect("{$frontendUrl}?{$queryParams}");
+            if ($result['success']) {
+                $orderCode = $result['order_code'] ?? '';
+                return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}");
+            } else {
+                $message = urlencode($result['message'] ?? 'Thanh toán thất bại');
+                return redirect("{$frontendBaseUrl}/order-failed?message={$message}");
+            }
         } catch (\Exception $e) {
-            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000') . '/payment/result';
-            return redirect("{$frontendUrl}?success=0&message=" . urlencode('Lỗi hệ thống'));
+            $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
+            return redirect("{$frontendBaseUrl}/order-failed?message=" . urlencode('Lỗi hệ thống xử lý'));
         }
     }
 }
