@@ -18,7 +18,7 @@ class PasswordResetRepository implements PasswordResetRepositoryInterface
         // Tạo token mới
         return DB::table($this->table)->insert([
             'email' => $email,
-            'token' => $token, // Lưu token (có thể hash nếu muốn bảo mật cao hơn)
+            'token' => $token,
             'created_at' => Carbon::now()
         ]);
     }

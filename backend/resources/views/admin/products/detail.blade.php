@@ -1,226 +1,205 @@
 @extends('layouts.admin')
 
-@section('title', 'Admin - Chi tiết sản phẩm')
-
-@section('page_title')
-    Chi tiết sản phẩm: {{ $product->name }}
-@endsection
+@section('title', 'Chi tiết: ' . $product->name)
 
 @section('content')
 
 @php
-    // ===== STATUS =====
-    $statusValue = is_string($product->status)
-        ? $product->status
-        : ($product->status?->value ?? 'draft');
-
-    $statusText = match ($statusValue) {
-        'active' => 'Active',
-        'inactive' => 'Inactive',
-        default => 'Draft',
-    };
-
-    $statusTone = match ($statusValue) {
-        'active' => 'success',
-        'inactive' => 'danger',
-        default => 'warning',
-    };
-
-    // ===== STOCK =====
-    $stock = $product->variants->sum('stock_qty');
-
-    // ===== IMAGES =====
-    $images = $product->images;
-    $mainImage = $images->first();
+    // Xử lý status gọn gàng
+    $status = $product->status instanceof \BackedEnum ? $product->status->value : ($product->status ?? 'draft');
+    $statusColors = [
+        'active' => 'bg-green-100 text-green-800 border-green-200',
+        'inactive' => 'bg-red-100 text-red-800 border-red-200',
+        'draft' => 'bg-gray-100 text-gray-800 border-gray-200',
+    ];
+    $statusClass = $statusColors[$status] ?? $statusColors['draft'];
+    
+    // Tính tổng tồn kho
+    $totalStock = $product->variants->isNotEmpty() 
+        ? $product->variants->sum('stock_qty') 
+        : 0; // Hoặc $product->stock nếu không dùng variants
+        
+    $mainImage = $product->thumbnail 
+        ? Storage::url($product->thumbnail) 
+        : ($product->images->first()?->image_url ? asset($product->images->first()->image_url) : null);
 @endphp
 
-<div class="flex items-center justify-between mb-6">
-    <div class="text-sm text-slate-500">
-        Thông tin chi tiết và hiệu suất bán hàng của sản phẩm
+{{-- HEADER --}}
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold text-slate-900">{{ $product->name }}</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-medium border {{ $statusClass }}">
+                {{ ucfirst($status) }}
+            </span>
+        </div>
+        <div class="flex items-center gap-4 mt-2 text-sm text-slate-500">
+            <span>SKU: <span class="font-mono font-semibold text-slate-700">{{ $product->sku }}</span></span>
+            <span>•</span>
+            <span>Đã tạo: {{ $product->created_at->format('d/m/Y H:i') }}</span>
+        </div>
     </div>
+
     <div class="flex gap-3">
-        <a href="/admin/products/{{ $product->id }}/edit"
-           class="px-4 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 transition shadow-md">
-            Sửa sản phẩm
+        <a href="{{ route('admin.products.edit', $product) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Chỉnh sửa
         </a>
-        <a href="/admin/products"
-           class="px-4 py-2.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50 transition">
-            ← Quay lại danh sách
+        <a href="{{ route('admin.products.index') }}"
+           class="px-4 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg text-sm font-medium transition">
+            Quay lại
         </a>
     </div>
 </div>
 
-<!-- GRID CHÍNH -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-    <!-- LEFT: IMAGE + INFO -->
+    {{-- CỘT TRÁI: ẢNH & BIẾN THỂ --}}
     <div class="lg:col-span-2 space-y-6">
-
-        <!-- IMAGE GALLERY -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            {{-- MAIN IMAGE --}}
-            <div class="mb-4">
-                @if($mainImage)
-                    <img
-                        src="{{ Storage::url($mainImage->image_url) }}"
-                        alt="{{ $product->name }}"
-                        class="w-full h-[420px] object-contain bg-slate-50 rounded-xl border"
-                        id="main-product-image"
-                    />
-                @else
-                    <div class="h-[420px] bg-slate-100 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center">
-                        <span class="text-6xl text-slate-400">📸</span>
+        
+        {{-- SECTION: GALLERY --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-col md:flex-row gap-6">
+                {{-- Ảnh chính --}}
+                <div class="w-full md:w-2/3">
+                    <div class="aspect-square w-full rounded-lg border border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center relative">
+                        @if($mainImage)
+                            <img id="main-display-image" src="{{ $mainImage }}" class="w-full h-full object-contain">
+                        @else
+                            <div class="text-slate-400 flex flex-col items-center">
+                                <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span>No Image</span>
+                            </div>
+                        @endif
                     </div>
-                @endif
-            </div>
-
-            {{-- THUMBNAILS --}}
-            @if($images->count() > 1)
-                <div class="flex gap-3">
-                    @foreach($images as $img)
-                        <img
-                            src="{{ Storage::url($img->image_url) }}"
-                            class="w-24 h-24 object-cover rounded-lg border cursor-pointer hover:ring-2 hover:ring-emerald-500 transition"
-                            onclick="document.getElementById('main-product-image').src=this.src"
-                        />
-                    @endforeach
-                </div>
-            @endif
-        </div>
-
-        <!-- BASIC INFO -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 class="text-2xl font-bold text-slate-900 mb-4">
-                {{ $product->name }}
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="text-slate-600">SKU:</span>
-                    <span class="font-medium ml-2">{{ $product->sku }}</span>
                 </div>
 
-                <div>
-                    <span class="text-slate-600">Danh mục:</span>
-                    @if($product->category)
-                        <a href="/admin/categories/{{ $product->category->id }}"
-                           class="font-medium ml-2 text-emerald-600 hover:underline">
-                            {{ $product->category->name }}
-                        </a>
-                    @else
-                        <span class="italic ml-2 text-slate-400">—</span>
+                {{-- List ảnh nhỏ --}}
+                <div class="w-full md:w-1/3 grid grid-cols-4 md:grid-cols-2 gap-2 h-fit">
+                    @if($product->thumbnail)
+                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-blue-500 overflow-hidden" 
+                             onclick="changeImage('{{ Storage::url($product->thumbnail) }}')">
+                             <img src="{{ Storage::url($product->thumbnail) }}" class="w-full h-full object-cover">
+                        </div>
                     @endif
-                </div>
-
-                <div>
-                    <span class="text-slate-600">Hãng:</span>
-                    @if($product->brand)
-                        <a href="/admin/brands/{{ $product->brand->id }}"
-                           class="font-medium ml-2 text-emerald-600 hover:underline">
-                            {{ $product->brand->name }}
-                        </a>
-                    @else
-                        <span class="italic ml-2 text-slate-400">—</span>
-                    @endif
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <span class="text-slate-600">Trạng thái:</span>
-                    <x-badge :text="$statusText" :tone="$statusTone" />
-                </div>
-            </div>
-        </div>
-
-        <!-- DESCRIPTION -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <h3 class="text-lg font-semibold mb-3">Mô tả sản phẩm</h3>
-            {!! $product->description
-                ? nl2br(e($product->description))
-                : '<p class="italic text-slate-500">Chưa có mô tả chi tiết.</p>'
-            !!}
-        </div>
-
-    </div>
-
-    <!-- RIGHT: PRICE + STOCK -->
-    <div class="space-y-6">
-
-        <!-- PRICE -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6 text-center">
-            <div class="text-slate-500 text-sm mb-2">Giá bán hiện tại</div>
-            <div class="text-4xl font-bold text-emerald-600">
-                {{ number_format($product->price) }}₫
-            </div>
-
-            @if($product->original_price > $product->price)
-                <div class="text-sm text-slate-500 line-through mt-1">
-                    {{ number_format($product->original_price) }}₫
-                </div>
-                <div class="text-sm text-red-600 font-medium">
-                    -{{ round(100 - ($product->price / $product->original_price * 100)) }}%
-                </div>
-            @endif
-        </div>
-
-        <!-- STOCK -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6 text-center">
-            <div class="text-slate-500 text-sm mb-2">Tồn kho hiện tại</div>
-            <div class="text-5xl font-bold text-slate-900">
-                {{ $stock }}
-            </div>
-            <div class="text-sm mt-2">
-                @if($stock === 0)
-                    <span class="text-red-600 font-medium">Hết hàng</span>
-                @elseif($stock < 10)
-                    <span class="text-orange-600 font-medium">Sắp hết (cảnh báo)</span>
-                @else
-                    <span class="text-emerald-600">Còn hàng</span>
-                @endif
-            </div>
-        </div>
-
-        <!-- VARIANTS INFO -->
-        <div class="bg-white rounded-xl border border-slate-200 p-6">
-            <div class="text-slate-500 text-sm mb-4 text-center">
-                Các biến thể sản phẩm
-            </div>
-
-            @if($product->variants->count())
-                <div class="flex flex-wrap gap-3 justify-center">
-                    @foreach($product->variants as $variant)
-                        @php
-                            $attr = is_array($variant->attributes) ? $variant->attributes : [];
-                            $size = $attr['size'] ?? null;
-                            $color = $attr['color'] ?? null;
-                        @endphp
-
-                        <div class="px-4 py-2 rounded-lg border border-slate-300 text-sm bg-slate-50 flex items-center gap-2">
-                            @if($size)
-                                <span class="font-medium text-slate-700">
-                                    Size: {{ $size }}
-                                </span>
-                            @endif
-
-                            @if($size && $color)
-                                <span class="text-slate-400">|</span>
-                            @endif
-
-                            @if($color)
-                                <span class="font-medium text-slate-700">
-                                    Màu: {{ $color }}
-                                </span>
-                            @endif
+                    @foreach($product->images as $img)
+                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-blue-500 overflow-hidden"
+                             onclick="changeImage('{{ Storage::url($img->image_url) }}')">
+                            <img src="{{ Storage::url($img->image_url) }}" class="w-full h-full object-cover">
                         </div>
                     @endforeach
                 </div>
-            @else
-                <div class="text-center text-sm text-slate-400 italic">
-                    Sản phẩm chưa có biến thể
+            </div>
+        </div>
+
+        {{-- SECTION: VARIANTS TABLE (Quan trọng) --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">Danh sách biến thể</h3>
+                <span class="text-xs font-medium px-2 py-1 bg-slate-100 rounded-full text-slate-600">
+                    Tổng tồn kho: {{ $totalStock }}
+                </span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-medium border-b">
+                        <tr>
+                            <th class="px-6 py-3">SKU Variant</th>
+                            <th class="px-6 py-3">Kích thước / Màu sắc</th>
+                            <th class="px-6 py-3 text-right">Giá bán</th>
+                            <th class="px-6 py-3 text-center">Tồn kho</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                    @forelse($product->variants as $variant)
+                        @php
+                            $attr = $variant->attributes ?? [];
+                        @endphp
+                        <tr class="hover:bg-slate-50">
+                            <td class="px-6 py-3 font-mono text-slate-600">{{ $variant->sku }}</td>
+                            <td class="px-6 py-3">
+                                <div class="flex gap-2">
+                                    @if(isset($attr['size'])) 
+                                        <span class="px-2 py-1 bg-slate-100 rounded text-xs">Size: <b>{{ $attr['size'] }}</b></span>
+                                    @endif
+                                    @if(isset($attr['color']))
+                                        <span class="px-2 py-1 bg-white border border-slate-200 rounded text-xs">Màu: <b>{{ $attr['color'] }}</b></span>
+                                    @endif
+                                </div>
+                            </td>
+                            <td class="px-6 py-3 text-right font-medium text-slate-900">
+                                {{ number_format($variant->price) }} ₫
+                            </td>
+                            <td class="px-6 py-3 text-center">
+                                @if($variant->stock_qty <= $variant->stock_alert)
+                                    <span class="text-red-600 font-bold">{{ $variant->stock_qty }}</span>
+                                @else
+                                    <span class="text-slate-700">{{ $variant->stock_qty }}</span>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-slate-500 italic">
+                                Sản phẩm này không có biến thể (Sản phẩm đơn).
+                            </td>
+                        </tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- SECTION: DESCRIPTION --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="font-bold text-slate-800 mb-4">Mô tả chi tiết</h3>
+            <div class="prose prose-sm max-w-none text-slate-600">
+                {!! $product->description ? nl2br(e($product->description)) : '<em class="text-slate-400">Chưa có mô tả</em>' !!}
+            </div>
+        </div>
+    </div>
+
+    {{-- CỘT PHẢI: THÔNG TIN CHUNG --}}
+    <div class="space-y-6">
+        
+        {{-- BOX GIÁ & INFO --}}
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h3 class="font-semibold text-slate-800 mb-4 pb-2 border-b">Thông tin chung</h3>
+            
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 text-sm">Giá niêm yết</span>
+                    <span class="text-lg font-bold text-blue-600">{{ number_format($product->price) }} ₫</span>
                 </div>
-            @endif
+                @if($product->original_price)
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-500 text-sm">Giá gốc</span>
+                    <span class="text-sm text-slate-400 line-through">{{ number_format($product->original_price) }} ₫</span>
+                </div>
+                @endif
+                
+                <div class="border-t border-dashed my-2"></div>
+
+                <div class="flex justify-between">
+                    <span class="text-slate-500 text-sm">Danh mục</span>
+                    <span class="font-medium text-slate-700">{{ $product->category->name ?? '—' }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-500 text-sm">Thương hiệu</span>
+                    <span class="font-medium text-slate-700">{{ $product->brand->name ?? '—' }}</span>
+                </div>
+            </div>
         </div>
 
     </div>
 </div>
+
+<script>
+    function changeImage(src) {
+        document.getElementById('main-display-image').src = src;
+    }
+</script>
 
 @endsection

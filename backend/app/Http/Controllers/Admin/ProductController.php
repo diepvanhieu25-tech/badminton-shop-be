@@ -5,13 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;;
 use App\Models\Product;
 use App\Services\Admin\ProductService;
-
-// Requests
 use App\Http\Requests\Admin\product\ProductFilterRequest;
 use App\Http\Requests\Admin\Product\StoreProductRequest;
 use App\Http\Requests\Admin\Product\UpdateProductRequest;
-
-// Models cho select box
 use App\Models\Category;
 use App\Models\Brand;
 
