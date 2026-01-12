@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Enums\OrderStatus;
 use App\Models\Order;
+use App\Enums\PaymentStatus;
 use App\Repositories\Interfaces\Admin\OrderRepositoryInterface;
 use Exception;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -30,11 +31,26 @@ class OrderService
         $order = $this->repo->findOrderById($orderId);
 
         if ($order->status === OrderStatus::CANCELLED) {
-             throw new Exception('Không thể cập nhật đơn hàng đã hủy.');
+            throw new Exception('Không thể cập nhật đơn hàng đã hủy.');
         }
-
-        $this->repo->updateStatus($order, $status);
         
+        DB::transaction(function () use ($order, $status) {
+            // 1. Cập nhật trạng thái đơn hàng (Logic cũ)
+            $this->repo->updateStatus($order, $status);
+
+            // 2. Tự động cập nhật thanh toán
+            // Nếu trạng thái mới là COMPLETED (Hoàn thành) -> Set Payment Status thành PAID
+            if ($status === OrderStatus::COMPLETED->value) {
+                // Kiểm tra nếu chưa thanh toán thì mới update để tránh ghi đè ngày thanh toán cũ (nếu có)
+                if ($order->payment_status !== PaymentStatus::PAID) {
+                    $order->update([
+                        'payment_status' => PaymentStatus::PAID
+                        // Nếu database có cột 'paid_at', bạn có thể thêm: 'paid_at' => now()
+                    ]);
+                }
+            }
+        });
+
         return $order;
     }
 

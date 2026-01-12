@@ -60,13 +60,13 @@
             <span class="font-medium">Khách hàng</span>
         </a>
 
-        <a href="/admin/report"
+        {{-- <a href="/admin/report"
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group {{ request()->is('admin/reports*') ? 'bg-emerald-50 text-emerald-700 font-bold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' }}">
             <div class="w-6 text-center">
                 <i class="fa-solid fa-chart-line text-lg group-hover:scale-110 transition-transform"></i>
             </div>
             <span class="font-medium">Báo cáo</span>
-        </a>
+        </a> --}}
 
     </nav>
 

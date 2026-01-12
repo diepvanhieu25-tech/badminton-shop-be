@@ -1,57 +1,44 @@
-    <?php
+<?php
 
-    use Illuminate\Support\Facades\Route;
-    // Import các Controller Admin
-    use App\Http\Controllers\Admin\AuthController;
-    use App\Http\Controllers\Admin\BrandController;
-    use App\Http\Controllers\Admin\CategoryController;
-    use App\Http\Controllers\Admin\UserController;
-    use App\Http\Controllers\Admin\DashboardController;
-    use App\Http\Controllers\Admin\ProductController;
-    use App\Http\Controllers\Admin\OrderController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\OrderController;
 
-    Route::get('/', function () {
+Route::get('/', function () {
         return view('welcome');
-    });
+});
 
     // --- NHÓM ROUTE ADMIN ---
-    Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->group(function () {
 
-        // 1. Route Đăng nhập (KHÔNG dùng middleware auth/admin để người lạ còn vào được)
-        Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
-        Route::post('login', [AuthController::class, 'login'])->name('login.submit');
+    Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [AuthController::class, 'login'])->name('login.submit');
+    
+
+    Route::middleware(['auth', 'admin'])->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+        // Dashboard
+        Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
-        // 2. Route Cần bảo vệ (Phải đăng nhập VÀ là Admin mới vào được)
-        // Lưu ý: 'admin' là tên middleware bạn đã đăng ký ở bước trước (trong bootstrap/app.php)
-        Route::middleware(['auth', 'admin'])->group(function () {
+        // Các Resource (Quản lý dữ liệu)
+        Route::resource('products', ProductController::class);
+        Route::resource('brands', BrandController::class)->except(['show']);
+        Route::resource('category', CategoryController::class)->except(['show']);
+        Route::resource('user', UserController::class);
 
-            // Dashboard
-            Route::get('/', [DashboardController::class, 'index']); // Vào /admin tự chuyển dashboard
-            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
-            // Các Resource (Quản lý dữ liệu)
-            Route::resource('products', ProductController::class);
-            Route::resource('brands', BrandController::class)->except(['show']);
-            Route::resource('category', CategoryController::class)->except(['show']);
-            Route::resource('user', UserController::class);
-
-            Route::prefix('user')->name('user.')->group(function () {
-                Route::get('/', [UserController::class, 'index'])
-                    ->name('index');
-                Route::get('create', [UserController::class, 'create'])
-                    ->name('create');
-                Route::post('/', [UserController::class, 'store'])
-                    ->name('store');
-                Route::get('{user}', [UserController::class, 'show'])
-                    ->name('show');
-                Route::get('{user}/edit', [UserController::class, 'edit'])
-                    ->name('edit');
-                Route::put('{user}', [UserController::class, 'update'])
-                    ->name('update');
-                Route::delete('{user}', [UserController::class, 'destroy'])
-                    ->name('destroy');
-            });
+        Route::prefix('user')->name('user.')->group(function () {
+            Route::get('/', [UserController::class, 'index'])->name('index');
+            Route::get('create', [UserController::class, 'create'])->name('create');
+            Route::post('/', [UserController::class, 'store'])->name('store');
+            Route::get('{user}', [UserController::class, 'show'])->name('show');
+            Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
+             Route::put('{user}', [UserController::class, 'update'])->name('update');
+            Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');});
 
             Route::prefix('orders')->name('orders.')->group(function () {
                 Route::get('/', [OrderController::class, 'index'])->name('index');
@@ -73,15 +60,4 @@
                 Route::delete('{product}', [ProductController::class, 'destroy'])->name('destroy');
             });
         });
-    });
-Route::get('/test-session', function () {
-    session(['test_key' => 'Hello Laravel']);
-    return 'Session đã được set. <a href="/read-session">Bấm vào đây để đọc thử</a>';
-});
-
-Route::get('/read-session', function () {
-    if (session('test_key') === 'Hello Laravel') {
-        return "THÀNH CÔNG: Session hoạt động tốt! Vấn đề nằm ở Form Login.";
-    }
-    return "THẤT BẠI: Session không lưu được. Vấn đề nằm ở Config/Docker.";
 });

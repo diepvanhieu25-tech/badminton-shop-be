@@ -4,94 +4,89 @@ namespace App\Services\Admin;
 
 use App\Repositories\Interfaces\Admin\DashboardRepositoryInterface;
 use Carbon\Carbon;
+use App\Enums\OrderStatus;
 
 class DashboardService
 {
-    protected $dashboardRepo;
+    protected $repository;
 
-    public function __construct(DashboardRepositoryInterface $dashboardRepo)
+    public function __construct(DashboardRepositoryInterface $repository)
     {
-        $this->dashboardRepo = $dashboardRepo;
+        $this->repository = $repository;
     }
 
     public function getDashboardData()
     {
-        $now = Carbon::now();
         $today = Carbon::today();
         $yesterday = Carbon::yesterday();
-
-        // 1. Thống kê Doanh thu
-        $todayRevenue = $this->dashboardRepo->getRevenueByDate($today);
-        $yesterdayRevenue = $this->dashboardRepo->getRevenueByDate($yesterday);
+        
+        // 1. KPI: Doanh thu
+        $todayRevenue = $this->repository->getRevenueByDate($today);
+        $yesterdayRevenue = $this->repository->getRevenueByDate($yesterday);
         $revenueGrowth = $this->calculateGrowth($todayRevenue, $yesterdayRevenue);
 
-        // 2. Thống kê Đơn hàng
-        $todayOrders = $this->dashboardRepo->countOrdersByDate($today);
-        $yesterdayOrders = $this->dashboardRepo->countOrdersByDate($yesterday);
-        $ordersGrowth = $todayOrders - $yesterdayOrders;
+        // 2. KPI: Đơn hàng mới
+        $todayOrders = $this->repository->countOrdersByDate($today);
+        $yesterdayOrders = $this->repository->countOrdersByDate($yesterday);
+        $ordersGrowth = $this->calculateGrowth($todayOrders, $yesterdayOrders);
 
-        // 3. Thống kê Khách hàng (Tuần này vs Tuần trước)
-        $weekCustomers = $this->dashboardRepo->countNewCustomers($now->copy()->startOfWeek(), $now->copy()->endOfWeek());
-        $lastWeekCustomers = $this->dashboardRepo->countNewCustomers($now->copy()->subWeek()->startOfWeek(), $now->copy()->subWeek()->endOfWeek());
+        // 3. KPI: Khách hàng tuần này
+        $startOfWeek = Carbon::now()->startOfWeek();
+        $endOfWeek = Carbon::now()->endOfWeek();
+        $startOfLastWeek = Carbon::now()->subWeek()->startOfWeek();
+        $endOfLastWeek = Carbon::now()->subWeek()->endOfWeek();
+
+        $weekCustomers = $this->repository->countNewCustomersBetween($startOfWeek, $endOfWeek);
+        $lastWeekCustomers = $this->repository->countNewCustomersBetween($startOfLastWeek, $endOfLastWeek);
         $customersGrowth = $this->calculateGrowth($weekCustomers, $lastWeekCustomers);
 
-        // 4. Sản phẩm bán trong tháng
-        $monthProducts = $this->dashboardRepo->countSoldProducts($now->month, $now->year);
+        // 4. KPI: Sản phẩm sắp hết
+        $lowStockCount = $this->repository->countLowStockVariants(10);
 
-        // 5. Data Biểu đồ doanh thu 7 ngày
-        $chartData = $this->prepareRevenueChartData();
+        // 5. Chart: Doanh thu 7 ngày qua
+        $revenueChart = $this->repository->getRevenueBetweenDates(Carbon::now()->subDays(6), $today);
+        $revenueLabels = $revenueChart->pluck('date')->map(fn($date) => Carbon::parse($date)->format('d/m'))->toArray();
+        $revenueData = $revenueChart->pluck('revenue')->toArray();
 
-        // 6. Data Biểu đồ trạng thái đơn hàng
-        $orderStatusData = $this->dashboardRepo->getOrderStatusCounts();
-
-        // 7. Top sản phẩm bán chạy
-        $topProducts = $this->dashboardRepo->getTopSellingProducts($now->month, $now->year);
-        // Logic lấy tên sp bán chạy nhất để hiển thị card (nếu cần)
-        $topProductName = $topProducts->isNotEmpty() ? $topProducts->first()->product_name : 'Chưa có dữ liệu';
-
-        // 8. Đơn hàng gần đây
-        $recentOrders = $this->dashboardRepo->getRecentOrders();
-
-        // Trả về mảng dữ liệu tổng hợp
-        return [
-            'todayRevenue'    => $todayRevenue,
-            'revenueGrowth'   => $revenueGrowth,
-            'todayOrders'     => $todayOrders,
-            'ordersGrowth'    => $ordersGrowth,
-            'weekCustomers'   => $weekCustomers,
-            'customersGrowth' => $customersGrowth,
-            'monthProducts'   => $monthProducts,
-            'revenueData'     => $chartData['data'],
-            'revenueLabels'   => $chartData['labels'],
-            'orderStatusData' => $orderStatusData,
-            'topProducts'     => $topProducts,
-            'topProductName'  => $topProductName, // Biến này để hiển thị ở card KPI nếu muốn
-            'recentOrders'    => $recentOrders,
+        // 6. Chart: Trạng thái đơn hàng (Format đúng key cho View)
+        $rawStatusData = $this->repository->countOrdersByStatus();
+        $orderStatusData = [
+            'pending'    => $rawStatusData[OrderStatus::PENDING->value] ?? 0,
+            'processing' => $rawStatusData[OrderStatus::PROCESSING->value] ?? 0,
+            'shipping'   => $rawStatusData[OrderStatus::SHIPPING->value] ?? 0,
+            'completed'  => $rawStatusData[OrderStatus::COMPLETED->value] ?? 0,
+            'cancelled'  => ($rawStatusData[OrderStatus::CANCELLED->value] ?? 0) + ($rawStatusData[OrderStatus::REFUNDED->value] ?? 0),
         ];
+
+        // 7. Lists
+        $recentOrders = $this->repository->getRecentOrders(5);
+        $topProducts = $this->repository->getTopSellingProducts(5);
+
+        // Map lại topProducts để view dễ dùng (lấy thumbnail từ relation)
+        $topProducts->transform(function ($item) {
+            $item->thumbnail = $item->variant?->image ?? $item->variant?->product?->thumbnail;
+            $item->name = $item->product_name; // Từ OrderItem
+            return $item;
+        });
+
+        return compact(
+            'todayRevenue', 'revenueGrowth',
+            'todayOrders', 'ordersGrowth',
+            'weekCustomers', 'customersGrowth',
+            'lowStockCount',
+            'revenueLabels', 'revenueData',
+            'orderStatusData',
+            'recentOrders',
+            'topProducts'
+        );
     }
 
-    // Hàm phụ: Tính % tăng trưởng
+    // Helper tính % tăng trưởng
     private function calculateGrowth($current, $previous)
     {
-        return $previous > 0 
-            ? round((($current - $previous) / $previous) * 100, 1) 
-            : 0;
-    }
-
-    // Hàm phụ: Chuẩn bị data biểu đồ 7 ngày
-    private function prepareRevenueChartData()
-    {
-        $data = [];
-        $labels = [];
-
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::today()->subDays($i);
-            $labels[] = $date->format('d/m');
-            
-            $revenue = $this->dashboardRepo->getRevenueByDate($date);
-            $data[] = round($revenue / 1000000, 2); // Chuyển sang đơn vị triệu
+        if ($previous == 0) {
+            return $current > 0 ? 100 : 0;
         }
-
-        return ['data' => $data, 'labels' => $labels];
+        return round((($current - $previous) / $previous) * 100, 1);
     }
 }

@@ -18,6 +18,11 @@ class UserService
         return $this->repo->paginate($filters, $perPage);
     }
 
+    public function getDetail($id): User
+    {
+        return $this->repo->findWithDetails($id);
+    }
+
     public function create(array $data): User
     {
         return DB::transaction(fn () => $this->repo->create($data));

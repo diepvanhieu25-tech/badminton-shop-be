@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;;
 use App\Models\Product;
 use App\Services\Admin\ProductService;
 use App\Http\Requests\Admin\product\ProductFilterRequest;
-use App\Http\Requests\Admin\Product\StoreProductRequest;
-use App\Http\Requests\Admin\Product\UpdateProductRequest;
+use App\Http\Requests\Admin\product\StoreProductRequest;
+use App\Http\Requests\Admin\product\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Brand;
 
