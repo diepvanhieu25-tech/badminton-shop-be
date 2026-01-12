@@ -13,7 +13,7 @@ class AdminMiddleware
     {
         // 1. Kiểm tra đã đăng nhập chưa
         if (!Auth::check()) {
-            return redirect()->route('login');
+            return redirect()->route('admin.login');
         }
 
         // 2. Kiểm tra role có phải admin không
@@ -24,6 +24,5 @@ class AdminMiddleware
 
         // 3. Nếu không phải admin thì đá về trang chủ hoặc báo lỗi 403
         return redirect('/')->with('error', 'Bạn không có quyền truy cập trang quản trị!');
-        // hoặc: abort(403);
     }
 }

@@ -74,3 +74,14 @@
             });
         });
     });
+Route::get('/test-session', function () {
+    session(['test_key' => 'Hello Laravel']);
+    return 'Session đã được set. <a href="/read-session">Bấm vào đây để đọc thử</a>';
+});
+
+Route::get('/read-session', function () {
+    if (session('test_key') === 'Hello Laravel') {
+        return "THÀNH CÔNG: Session hoạt động tốt! Vấn đề nằm ở Form Login.";
+    }
+    return "THẤT BẠI: Session không lưu được. Vấn đề nằm ở Config/Docker.";
+});
