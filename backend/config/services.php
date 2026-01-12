@@ -46,4 +46,13 @@ return [
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
+
+    'viettelpost' => [
+        'url' => env('VIETTEL_POST_API_URL', 'https://partner.viettelpost.vn/v2'),
+        'sandbox' => env('VIETTEL_POST_SANDBOX', true),
+        'username' => env('VIETTEL_POST_USERNAME'),
+        'password' => env('VIETTEL_POST_PASSWORD'),
+        'group_address_id' => env('VIETTEL_POST_GROUP_ADDRESS_ID', 12345),
+        'cus_id' => env('VIETTEL_POST_CUS_ID', 12345),
+    ],
 ];

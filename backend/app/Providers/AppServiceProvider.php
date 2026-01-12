@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Repositories\Eloquent\Admin\BrandRepository as AdminBrandRepository;
 use App\Repositories\Eloquent\Admin\CategoryRepository as AdminCategoryRepository;
+use App\Repositories\Eloquent\Admin\DashboardRepository;
 use App\Repositories\Eloquent\Admin\ProductRepository as AdminProductRepository;
 use App\Repositories\Eloquent\Admin\UserRepository;
 use App\Repositories\Eloquent\Api\BrandRepository;
@@ -29,6 +30,7 @@ use App\Repositories\Interfaces\Admin\OrderRepositoryInterface as AdminOrderRepo
 
 use App\Repositories\Eloquent\Admin\OrderRepository as AdminOrderRepository;
 use App\Repositories\Eloquent\Api\PasswordResetRepository;
+use App\Repositories\Interfaces\Admin\DashboardRepositoryInterface;
 use App\Repositories\Interfaces\Api\PasswordResetRepositoryInterface;;
 
 class AppServiceProvider extends ServiceProvider
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AdminCategoryRepositoryInterface::class, AdminCategoryRepository::class);
         $this->app->bind(AdminUserRepositoryInterface::class, UserRepository::class);
         $this->app->bind(AdminProductRepositoryInterface::class, AdminProductRepository::class);
+        $this->app->bind(DashboardRepositoryInterface::class, DashboardRepository::class);
     }
 
     /**

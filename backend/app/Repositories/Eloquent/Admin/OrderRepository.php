@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent\Admin;
 
 use App\Models\Order;
+use App\Models\Shipment;
 use App\Repositories\Interfaces\Admin\OrderRepositoryInterface;
 use Illuminate\Pagination\LengthAwarePaginator; 
 
@@ -40,9 +41,26 @@ class OrderRepository implements OrderRepositoryInterface
 
     public function findOrderById(int $orderId): ?Order
     {
-        return Order::with(['items.variant', 'user', 'payment', 'shipment'])
+        return Order::with(['items.variant.product', 'user', 'payment', 'shipment'])
             ->findOrFail($orderId);
     }
 
+    public function updateStatus(Order $order, string $status): bool
+    {
+        return $order->update(['status' => $status]);
+    }
 
+    public function createShipment(Order $order, array $data): Shipment
+    {
+        // Data đã được validate và chuẩn bị ở Service
+        return Shipment::create([
+            'order_id'      => $order->id,
+            'carrier'       => $data['carrier'],
+            'tracking_code' => $data['tracking_code'],
+            'note'          => $data['note'] ?? null,
+            'cod_amount'    => $data['cod_amount'] ?? 0,
+            'status'        => 'shipping', // Trạng thái của riêng shipment
+            'shipped_at'    => now(),
+        ]);
+    }
 }

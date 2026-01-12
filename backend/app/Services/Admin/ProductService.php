@@ -4,7 +4,6 @@ namespace App\Services\Admin;
 
 use App\Models\Product;
 use App\Repositories\Interfaces\Admin\ProductRepositoryInterface;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class ProductService

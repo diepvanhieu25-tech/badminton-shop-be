@@ -52,7 +52,7 @@ class ProductRepository implements ProductRepositoryInterface
             'brand:id,name',
             'category:id,name',
             'variants',
-            'images' => fn ($q) => $q->orderBy('sort_order'),
+            'images' => fn($q) => $q->orderBy('sort_order'),
         ])->findOrFail($id);
     }
 
@@ -121,25 +121,55 @@ class ProductRepository implements ProductRepositoryInterface
             $id = $v['id'] ?? null;
             $delete = !empty($v['_delete']);
 
-            if ($id) {
-                $variant = ProductVariant::where('product_id', $product->id)
-                    ->where('id', $id)
-                    ->first();
-
-                if (!$variant) continue;
-
-                if ($delete) {
+            // Xử lý Xóa
+            if ($id && $delete) {
+                $variant = ProductVariant::where('product_id', $product->id)->find($id);
+                if ($variant) {
+                    // Xóa ảnh cũ nếu có để dọn rác
+                    if ($variant->image) {
+                        Storage::disk('public')->delete($variant->image);
+                    }
                     $variant->delete();
-                    continue;
+                }
+                continue;
+            }
+
+            // Bỏ qua nếu tạo mới mà lại tick xóa
+            if (!$id && $delete) continue;
+
+            // Xử lý Upload Ảnh Variant
+            $imagePath = null;
+            if (isset($v['image']) && $v['image'] instanceof UploadedFile) {
+                $imagePath = $v['image']->store('uploads/variants', 'public');
+            }
+
+            if ($id) {
+                // --- UPDATE ---
+                $variant = ProductVariant::where('product_id', $product->id)->find($id);
+                if ($variant) {
+                    $dataToUpdate = $this->mapVariantData($product, $v);
+
+                    // Chỉ cập nhật ảnh nếu có upload ảnh mới
+                    if ($imagePath) {
+                        // Xóa ảnh cũ
+                        if ($variant->image) {
+                            Storage::disk('public')->delete($variant->image);
+                        }
+                        $dataToUpdate['image'] = $imagePath;
+                    }
+
+                    $variant->update($dataToUpdate);
+                }
+            } else {
+                // --- CREATE ---
+                $dataToCreate = $this->mapVariantData($product, $v);
+
+                // Gán ảnh nếu có
+                if ($imagePath) {
+                    $dataToCreate['image'] = $imagePath;
                 }
 
-                $variant->update($this->mapVariantData($product, $v));
-            } else {
-                if ($delete) continue;
-
-                ProductVariant::create(
-                    $this->mapVariantData($product, $v)
-                );
+                ProductVariant::create($dataToCreate);
             }
         }
     }

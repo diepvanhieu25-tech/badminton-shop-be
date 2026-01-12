@@ -40,6 +40,7 @@ class UpdateProductRequest extends FormRequest
             'variants.*.original_price' => ['nullable', 'numeric', 'min:0'],
             'variants.*.stock_qty' => ['nullable', 'integer', 'min:0'],
             'variants.*.stock_alert' => ['nullable', 'integer', 'min:0'],
+            'variants.*.image' => ['nullable', 'image', 'max:2048'],
 
             // existing images
             'existing_images' => ['nullable', 'array'],

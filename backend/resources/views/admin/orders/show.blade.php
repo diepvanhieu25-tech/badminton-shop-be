@@ -1,121 +1,96 @@
 @extends('layouts.admin')
 
-@section('title', 'Chi tiết đơn hàng')
+@section('title', 'Chi tiết đơn hàng #' . $order->code)
 @section('page_title', 'Chi tiết đơn hàng')
 
 @section('content')
 
-{{-- HEADER --}}
-<div class="flex items-center justify-between mb-6">
-    <div>
-        <div class="text-lg font-bold text-slate-900">
-            Đơn hàng {{ $order->code }}
+    {{-- 1. HEADER --}}
+    @include('admin.orders.partials.header')
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {{-- === LEFT COLUMN (MAIN CONTENT) === --}}
+        <div class="lg:col-span-8 space-y-6">
+
+            {{-- 2. DANH SÁCH SẢN PHẨM & TỔNG TIỀN --}}
+            @include('admin.orders.partials.items-table')
+
+            {{-- 3. THANH TOÁN & VẬN CHUYỂN --}}
+            @include('admin.orders.partials.info-cards')
+
         </div>
-        <div class="text-sm text-slate-500">
-            Tạo lúc {{ $order->created_at->format('H:i d/m/Y') }}
-        </div>
-    </div>
 
-    <a href="{{ route('admin.orders.index') }}"
-       class="px-4 py-2 rounded-lg border border-slate-300 text-sm hover:bg-slate-50">
-        ← Quay lại danh sách
-    </a>
-</div>
+        {{-- === RIGHT COLUMN (SIDEBAR) === --}}
+        <div class="lg:col-span-4 space-y-6">
 
-{{-- ORDER + CUSTOMER --}}
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            {{-- 4. FORM CẬP NHẬT TRẠNG THÁI --}}
+            @include('admin.orders.partials.status-form')
 
-    {{-- THÔNG TIN KHÁCH HÀNG --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 class="font-semibold mb-4">Thông tin người nhận</h3>
+            {{-- 5. THÔNG TIN KHÁCH HÀNG --}}
+            @include('admin.orders.partials.customer-info')
 
-        <div class="space-y-2 text-sm">
-            <div><b>Tên:</b> {{ $order->receiver_name ?? 'Khách lẻ' }}</div>
-            <div><b>SĐT:</b> {{ $order->receiver_phone }}</div>
-            <div><b>Địa chỉ:</b> {{ $order->shipping_address }}</div>
-            @if($order->note)
-                <div><b>Ghi chú:</b> {{ $order->note }}</div>
-            @endif
+            {{-- 6. GHI CHÚ --}}
+            @include('admin.orders.partials.note')
+
         </div>
     </div>
 
-    {{-- TRẠNG THÁI --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 class="font-semibold mb-4">Trạng thái</h3>
+    {{-- ================================================= --}}
+    {{-- THÊM MODAL TẠO VẬN ĐƠN Ở CUỐI FILE (NGOÀI GRID) --}}
+    {{-- ================================================= --}}
+    <div id="shipping-modal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        {{-- Backdrop tối màu --}}
+        <div class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity" onclick="closeShippingModal()"></div>
 
-        <div class="space-y-3 text-sm">
-            <div>
-                <b>Thanh toán:</b>
-                <span class="ml-1">
-                    {{ __($order->status->value) }}
-                </span>
+        <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+            <div
+                class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg border border-slate-200">
+
+                {{-- Form submit về route admin.orders.ship --}}
+                <form action="{{ route('admin.orders.ship', $order) }}" method="POST">
+                    @csrf
+
+                    <div class="px-4 py-5 sm:p-6 text-center">
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 mb-4">
+                            <i class="fa-solid fa-cloud-arrow-up text-blue-600"></i>
+                        </div>
+                        <h3 class="text-base font-semibold leading-6 text-slate-900">Đẩy đơn sang Viettel Post?</h3>
+                        <p class="mt-2 text-sm text-slate-500">
+                            Hệ thống sẽ tự động gửi thông tin đơn hàng này sang Viettel Post và nhận về Mã vận đơn.
+                        </p>
+
+                        {{-- Hiển thị thông tin tóm tắt --}}
+                        <div class="mt-4 bg-slate-50 p-3 rounded-lg text-sm text-left border border-slate-200">
+                            <p><strong>Khách hàng:</strong> {{ $order->receiver_name }}</p>
+                            <p><strong>Thu hộ (COD):</strong>
+                                {{ number_format($order->payment_status !== 'paid' ? $order->total : 0) }}₫</p>
+                            <p><strong>Trọng lượng:</strong> ~1kg (Mặc định)</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                        <button type="submit"
+                            class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 sm:ml-3 sm:w-auto transition">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Xác nhận đẩy đơn
+                        </button>
+                        <button type="button" onclick="closeShippingModal()"
+                            class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-
     </div>
 
-    {{-- TỔNG TIỀN --}}
-    <div class="bg-white rounded-xl border border-slate-200 p-5">
-        <h3 class="font-semibold mb-4">Thanh toán</h3>
+    <script>
+        function openShippingModal() {
+            document.getElementById('shipping-modal').classList.remove('hidden');
+        }
 
-        <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-                <span>Tạm tính</span>
-                <span>{{ number_format($order->subtotal) }}₫</span>
-            </div>
-
-            <div class="flex justify-between">
-                <span>Phí ship</span>
-                <span>{{ number_format($order->shipping_fee) }}₫</span>
-            </div>
-
-            <div class="border-t pt-2 flex justify-between font-bold text-base">
-                <span>Tổng cộng</span>
-                <span>{{ number_format($order->total) }}₫</span>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-{{-- DANH SÁCH SẢN PHẨM --}}
-<div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-    <div class="p-5 border-b font-semibold">
-        Sản phẩm trong đơn
-    </div>
-
-    <table class="w-full text-sm">
-        <thead class="bg-slate-50 text-slate-600">
-            <tr>
-                <th class="py-3 px-5 text-left">Sản phẩm</th>
-                <th class="py-3 px-5 text-left">Biến thể</th>
-                <th class="py-3 px-5 text-center">SL</th>
-                <th class="py-3 px-5 text-right">Đơn giá</th>
-                <th class="py-3 px-5 text-right">Thành tiền</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y">
-            @foreach($order->items as $item)
-                <tr>
-                    <td class="py-3 px-5">
-                        {{ $item->product_name }}
-                    </td>
-                    <td class="py-3 px-5">
-                        {{ $item->variant_name }}
-                    </td>
-                    <td class="py-3 px-5 text-center">
-                        {{ $item->quantity }}
-                    </td>
-                    <td class="py-3 px-5 text-right">
-                        {{ number_format($item->unit_price) }}₫
-                    </td>
-                    <td class="py-3 px-5 text-right font-semibold">
-                        {{ number_format($item->total_price) }}₫
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-
+        function closeShippingModal() {
+            document.getElementById('shipping-modal').classList.add('hidden');
+        }
+    </script>
 @endsection
