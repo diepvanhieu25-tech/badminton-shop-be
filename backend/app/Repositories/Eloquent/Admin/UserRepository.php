@@ -3,8 +3,10 @@
 namespace App\Repositories\Eloquent\Admin;
 
 use App\Models\User;
+use App\Enums\UserRole;
 use App\Repositories\Interfaces\Admin\UserRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -12,35 +14,62 @@ class UserRepository implements UserRepositoryInterface
     {
         $q = User::query();
 
-        // search theo name (?q=yonex)
-        if (!empty($filters['q'])) {
-            $search = trim((string) $filters['q']);
-            $q->where('name', 'like', "%{$search}%");
+        // Loại bỏ Admin
+        $q->where('role', '!=', UserRole::ADMIN);
+
+        // Search đa trường
+        if (!empty($filters['search'])) {
+            $search = trim((string) $filters['search']);
+            $q->where(function (Builder $query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%");
+            });
         }
 
-        // filter active (?is_active=1|0)
-        if (array_key_exists('is_active', $filters) && $filters['is_active'] !== null && $filters['is_active'] !== '') {
-            $q->where('is_active', (bool) $filters['is_active']);
+        // Filter status
+        if (isset($filters['status']) && $filters['status'] !== '') {
+            $q->where('status', $filters['status']);
         }
 
-        return $q->orderByDesc('id')->paginate($perPage);
+        return $q->orderByDesc('created_at')->paginate($perPage);
     }
 
     public function create(array $data): User
     {
-        return User::query()->create($data);
+        return User::create($data);
     }
 
     public function update(User $user, array $data): User
     {
-        $user->fill($data);
-        $user->save();
-
+        $user->update($data);
         return $user->refresh();
     }
 
     public function delete(User $user): void
     {
-        $user->delete(); // soft delete
+        $user->delete();
+    }
+
+    public function findWithDetails($id): User
+    {
+        // 1. Khởi tạo query
+        $query = User::query();
+        
+        // 2. Bảo mật: Không cho phép xem chi tiết của user có role Admin thông qua ID
+        $query->where('role', '!=', UserRole::ADMIN);
+
+        return $query
+            // 3. TỐI ƯU: Đã xóa with(['orders']) vì UI không hiển thị danh sách
+            
+            // 4. Chỉ lấy tổng số lượng đơn
+            ->withCount('orders')
+
+            // 5. Chỉ lấy tổng tiền (đơn completed)
+            ->withSum(['orders as lifetime_spent' => function ($q) {
+                $q->where('status', 'completed');
+            }], 'total') 
+            
+            ->findOrFail($id);
     }
 }

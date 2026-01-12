@@ -24,7 +24,7 @@
                 @if (session('success'))
                     <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
                         <div class="flex items-start gap-3">
-                            <div class="mt-0.5">✅</div>
+                            <div class="mt-0.5">True</div>
                             <div class="font-medium">{{ session('success') }}</div>
                         </div>
                     </div>
@@ -46,5 +46,6 @@
         </main>
     </div>
 </div>
+@yield('scripts')
 </body>
 </html>

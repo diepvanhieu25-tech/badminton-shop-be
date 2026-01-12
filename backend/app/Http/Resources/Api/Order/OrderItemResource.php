@@ -10,18 +10,30 @@ class OrderItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Helper xử lý url (local / s3 / full url)
+        $getUrl = fn ($path) =>
+            ($path && !filter_var($path, FILTER_VALIDATE_URL))
+                ? asset(Storage::url($path))
+                : $path;
+
+        $imagePath = null;
+
+        if ($this->variant?->image) {
+            $imagePath = $this->variant->image;
+        } elseif ($this->variant?->product?->thumbnail) {
+            $imagePath = $this->variant->product->thumbnail;
+        }
+
         return [
             'id'           => $this->id,
-            'product_name' => $this->product_name, // Tên lưu cứng lúc mua
-            'variant_name' => $this->variant_name, // SKU hoặc tên biến thể
+            'product_name' => $this->product_name,
+            'variant_name' => $this->variant_name,
             'quantity'     => (int) $this->quantity,
             'unit_price'   => (float) $this->unit_price,
             'total_price'  => (float) $this->total_price,
-            
-            // Lấy ảnh: Cố gắng lấy từ variant hiện tại, nếu variant bị xóa thì lấy null hoặc ảnh mặc định
-            'image_url'    => $this->variant && $this->variant->image 
-                                ? $this->variant->image 
-                                : null, // Hoặc $this->variant->product->thumbnail
+
+            // URL chuẩn cho FE
+            'image_url'    => $getUrl($imagePath),
         ];
     }
 }

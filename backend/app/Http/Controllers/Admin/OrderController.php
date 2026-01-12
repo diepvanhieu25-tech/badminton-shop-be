@@ -8,8 +8,6 @@ use App\Services\Admin\OrderService;
 use App\Services\Admin\ViettelPostService;
 use Illuminate\Http\Request;
 use App\Http\Requests\Admin\order\OrderFilterRequest;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\OrdersExport;
 
 class OrderController extends Controller
 {
@@ -62,7 +60,7 @@ class OrderController extends Controller
             // 1. Gọi Service để lấy mã vận đơn tự động
             $trackingCode = $shippingService->createOrder($order);
 
-            // 2. Lưu vào DB (Giống logic cũ)
+            // 2. Lưu vào DB
             \Illuminate\Support\Facades\DB::transaction(function () use ($order, $trackingCode) {
 
                 \App\Models\Shipment::create([

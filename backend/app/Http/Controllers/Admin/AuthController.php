@@ -15,7 +15,7 @@ class AuthController extends Controller
         if (Auth::check() && Auth::user()->role === UserRole::ADMIN) {
             return redirect()->route('admin.dashboard');
         }
-        return view('admin.auth.login'); // Trả về view bạn đã tạo ở câu hỏi đầu tiên
+        return view('auth.login');
     }
 
     // 2. Xử lý đăng nhập

@@ -5,17 +5,30 @@ namespace App\Repositories\Eloquent\Admin;
 use App\Repositories\Interfaces\Admin\DashboardRepositoryInterface;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\ProductVariant;
 use App\Models\OrderItem;
+use App\Enums\OrderStatus;
+use App\Enums\UserRole;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class DashboardRepository implements DashboardRepositoryInterface
 {
     public function getRevenueByDate($date)
     {
         return Order::whereDate('created_at', $date)
-            ->where('status', 'completed')
+            ->where('status', OrderStatus::COMPLETED) // Chỉ tính đơn hoàn thành
             ->sum('total');
+    }
+
+    public function getRevenueBetweenDates($startDate, $endDate)
+    {
+        return Order::whereDate('created_at', '>=', $startDate)
+            ->whereDate('created_at', '<=', $endDate)
+            ->where('status', OrderStatus::COMPLETED)
+            ->selectRaw('DATE(created_at) as date, SUM(total) as revenue')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
     }
 
     public function countOrdersByDate($date)
@@ -23,59 +36,51 @@ class DashboardRepository implements DashboardRepositoryInterface
         return Order::whereDate('created_at', $date)->count();
     }
 
-    public function countNewCustomers($startDate, $endDate)
+    public function countOrdersByStatus()
     {
-        return User::where('role', 'customer')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->count();
+        return Order::select('status', DB::raw('count(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->toArray();
     }
 
-    public function countSoldProducts($month, $year)
+    public function getRecentOrders(int $limit = 5)
     {
-        return OrderItem::whereHas('order', function($query) use ($month, $year) {
-            $query->whereMonth('created_at', $month)
-                  ->whereYear('created_at', $year)
-                  ->where('status', 'completed');
-        })->sum('quantity');
-    }
-
-    public function getOrderStatusCounts()
-    {
-        return [
-            'pending'    => Order::where('status', 'pending')->count(),
-            'processing' => Order::where('status', 'processing')->count(),
-            'shipping'   => Order::where('status', 'shipping')->count(),
-            'completed'  => Order::where('status', 'completed')->count(),
-            'cancelled'  => Order::where('status', 'cancelled')->count(),
-        ];
-    }
-
-    public function getTopSellingProducts($month, $year, $limit = 5)
-    {
-        return OrderItem::select(
-                'product_name',
-                'variant_name',
-                'product_id', // Nên lấy thêm ID hoặc thumbnail để hiển thị ảnh
-                DB::raw('SUM(quantity) as total_sold'),
-                DB::raw('SUM(total_price) as total_revenue')
-            )
-            ->whereHas('order', function($query) use ($month, $year) {
-                $query->whereMonth('created_at', $month)
-                      ->whereYear('created_at', $year)
-                      ->where('status', 'completed');
-            })
-            ->groupBy('product_name', 'variant_name', 'product_id') // Group by thêm ID nếu có
-            ->orderByDesc('total_sold')
+        return Order::with('user') // Eager load user
+            ->latest()
             ->limit($limit)
             ->get();
     }
 
-    public function getRecentOrders($limit = 5)
+    public function countNewCustomersBetween($startDate, $endDate)
     {
-        return Order::with('user:id,name,email')
-            ->select('id', 'user_id', 'code', 'receiver_name', 'total', 'status', 'created_at')
-            ->orderByDesc('created_at')
+        return User::where('role', UserRole::CUSTOMER) // Giả sử enum UserRole có case CUSTOMER
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->count();
+    }
+
+    public function countLowStockVariants(int $threshold = 10)
+    {
+        // Đếm số biến thể có tồn kho dưới mức quy định
+        return ProductVariant::where('stock_qty', '<=', $threshold)->count();
+    }
+
+    public function getTopSellingProducts(int $limit = 5)
+    {
+        // Join orders để check status, group theo variant hoặc product_name
+        return OrderItem::query()
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.status', OrderStatus::COMPLETED)
+            ->selectRaw('
+                order_items.product_name, 
+                order_items.product_variant_id,
+                SUM(order_items.quantity) as total_sold,
+                MAX(order_items.unit_price) as price
+            ')
+            ->groupBy('order_items.product_name', 'order_items.product_variant_id')
+            ->orderByDesc('total_sold')
             ->limit($limit)
+            ->with(['variant.product']) // Load để lấy ảnh thumbnail
             ->get();
     }
 }
