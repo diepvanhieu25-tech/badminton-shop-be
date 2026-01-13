@@ -35,9 +35,13 @@
 
             <div>
                 <label class="block text-sm font-semibold text-slate-700 mb-2">Hình ảnh</label>
+                
+                {{-- Input File --}}
                 <input type="file" 
+                       id="image_input"
                        name="image_url"
                        accept="image/*"
+                       onchange="previewImage(event)"
                        class="block w-full text-sm text-slate-500
                               file:mr-4 file:py-2.5 file:px-4
                               file:rounded-xl file:border-0
@@ -45,10 +49,25 @@
                               file:bg-emerald-50 file:text-emerald-700
                               hover:file:bg-emerald-100
                               cursor-pointer border border-slate-200 rounded-xl bg-white">
+                
                 <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
                     <i class="fa-solid fa-circle-info"></i> Định dạng: JPG, PNG, GIF. Tối đa 2MB.
                 </div>
                 @error('image_url')<div class="mt-1 text-sm text-rose-600">{{ $message }}</div>@enderror
+
+                {{-- Khung hiển thị ảnh Preview (Mặc định ẩn) --}}
+                <div id="preview_container" class="hidden mt-4">
+                    <label class="block text-xs font-semibold text-slate-500 mb-2">Ảnh xem trước:</label>
+                    <div class="relative inline-block">
+                        <img id="preview_img" src="" class="h-32 w-32 object-cover rounded-xl border border-slate-200 shadow-sm">
+                        
+                        {{-- Nút xóa ảnh đã chọn --}}
+                        <button type="button" onclick="removePreview()" 
+                                class="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-slate-200 text-slate-400 hover:text-rose-500 transition">
+                            <i class="fa-solid fa-xmark text-sm w-4 h-4 flex items-center justify-center"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div>
@@ -76,3 +95,26 @@
     </form>
 </div>
 @endsection
+
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const container = document.getElementById('preview_container');
+        const img = document.getElementById('preview_img');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                img.src = e.target.result;
+                container.classList.remove('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removePreview() {
+        document.getElementById('image_input').value = '';
+        document.getElementById('preview_container').classList.add('hidden');
+        document.getElementById('preview_img').src = '';
+    }
+</script>

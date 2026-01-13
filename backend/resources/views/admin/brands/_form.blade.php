@@ -21,8 +21,11 @@
     <div>
         <label class="block text-sm font-semibold text-slate-700 mb-1">Logo</label>
         
+        {{-- Thêm ID 'logo_input' và sự kiện onchange --}}
         <input type="file" 
+               id="logo_input"
                name="logo"
+               onchange="previewImage(event)"
                class="block w-full text-sm text-slate-500
                       file:mr-4 file:py-2.5 file:px-4
                       file:rounded-xl file:border-0
@@ -34,17 +37,26 @@
         <div class="mt-1 text-xs text-slate-500">Định dạng: jpg, png, jpeg. Tối đa 2MB.</div>
         @error('logo')<div class="mt-1 text-sm text-rose-600 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div>@enderror
 
-        @if($brand?->logo_url)
-            <div class="mt-3 flex items-center gap-3 p-2 border border-slate-200 rounded-xl bg-slate-50 w-fit pr-4">
-                <img src="{{ asset('storage/' . $brand->logo_url) }}" 
-                     alt="Current Logo" 
-                     class="h-12 w-12 object-contain rounded-lg bg-white border border-slate-200 p-0.5">
-                <div class="text-xs text-slate-500">
-                    <div class="font-semibold text-slate-700">Logo hiện tại</div>
-                    <div class="text-[10px] text-slate-400 mt-0.5">Tải ảnh mới để thay thế</div>
+        {{-- Container hiển thị ảnh Preview --}}
+        {{-- Logic: Nếu có logo cũ thì hiện, nếu không thì ẩn (hidden). JS sẽ gỡ class hidden khi chọn ảnh mới --}}
+        <div id="preview_container" class="{{ $brand?->logo_url ? '' : 'hidden' }} mt-3 flex items-center gap-3 p-2 border border-slate-200 rounded-xl bg-slate-50 w-fit pr-4">
+            <img id="preview_img" 
+                 src="{{ $brand?->logo_url ? asset('storage/' . $brand->logo_url) : '' }}" 
+                 alt="Logo Preview" 
+                 class="h-12 w-12 object-contain rounded-lg bg-white border border-slate-200 p-0.5">
+            
+            <div class="text-xs text-slate-500">
+                <div class="font-semibold text-slate-700" id="preview_text">
+                    {{ $brand?->logo_url ? 'Logo hiện tại' : 'Logo mới chọn' }}
                 </div>
+                <div class="text-[10px] text-slate-400 mt-0.5">Nhấn lưu để cập nhật</div>
             </div>
-        @endif
+            
+            {{-- Nút xóa preview (chỉ hiện khi đang chọn ảnh mới ở trang create, tùy chọn thêm) --}}
+            <button type="button" onclick="removePreview()" class="ml-2 text-slate-400 hover:text-rose-500 transition-colors" title="Bỏ chọn">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
     </div>
 
     {{-- Mô tả --}}
@@ -74,3 +86,46 @@
         </label>
     </div>
 </div>
+
+{{-- Thêm script xử lý preview ảnh --}}
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const container = document.getElementById('preview_container');
+        const img = document.getElementById('preview_img');
+        const text = document.getElementById('preview_text');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                // Gán đường dẫn ảnh vừa đọc vào src của thẻ img
+                img.src = e.target.result;
+                // Hiển thị container (bỏ class hidden)
+                container.classList.remove('hidden');
+                // Đổi text
+                text.textContent = "Logo mới chọn";
+            }
+
+            // Đọc file dưới dạng Data URL
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function removePreview() {
+        const input = document.getElementById('logo_input');
+        const container = document.getElementById('preview_container');
+        const img = document.getElementById('preview_img');
+        
+        // Reset input
+        input.value = '';
+        
+        @if($brand?->logo_url)
+            img.src = "{{ asset('storage/' . $brand->logo_url) }}";
+            document.getElementById('preview_text').textContent = "Logo hiện tại";
+        @else
+            img.src = "";
+            container.classList.add('hidden');
+        @endif
+    }
+</script>

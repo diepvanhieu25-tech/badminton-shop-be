@@ -93,7 +93,7 @@
         {{-- Right Column: Shopping Overview Stats --}}
         <div class="lg:col-span-2 space-y-6">
             {{-- Stats Cards Row --}}
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 gap-4 w-fit">
                 {{-- Card 1: Tổng đơn hàng --}}
                 <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
                     <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
@@ -121,15 +121,6 @@
                 </div>
             </div>
 
-             <div class="bg-slate-50 rounded-xl border border-dashed border-slate-300 p-8 flex flex-col items-center justify-center text-center h-[calc(100%-110px)] min-h-[200px]">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-                    <i class="fa-solid fa-chart-pie text-slate-300 text-2xl"></i>
-                </div>
-                <h3 class="text-slate-900 font-medium mb-1">Thống kê mua sắm</h3>
-                <p class="text-sm text-slate-500 max-w-xs">
-                    Khu vực này có thể hiển thị biểu đồ phân bổ chi tiêu hoặc danh mục yêu thích của khách hàng trong tương lai.
-                </p>
-            </div>
         </div>
     </div>
 @endsection
