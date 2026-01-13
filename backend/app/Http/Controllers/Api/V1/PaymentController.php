@@ -47,16 +47,16 @@ class PaymentController extends Controller
 
             $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
 
+            $orderCode = $result['order_code'] ?? '';
             if ($result['success']) {
-                $orderCode = $result['order_code'] ?? '';
                 return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}");
             } else {
                 $message = urlencode($result['message'] ?? 'Thanh toán thất bại');
-                return redirect("{$frontendBaseUrl}/order-failed?message={$message}");
+                return redirect("{$frontendBaseUrl}/order-failed?message={$message}&code={$orderCode}");
             }
         } catch (\Exception $e) {
             $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            return redirect("{$frontendBaseUrl}/order-failed?message=" . urlencode('Lỗi hệ thống xử lý'));
+            return redirect("{$frontendBaseUrl}/order-failed?message=" . urlencode('Lỗi hệ thống xử lý') . "&code={$orderCode}");
         }
     }
 }
