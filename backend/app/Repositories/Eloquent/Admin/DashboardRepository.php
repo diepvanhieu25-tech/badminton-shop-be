@@ -62,7 +62,7 @@ class DashboardRepository implements DashboardRepositoryInterface
     public function countLowStockVariants(int $threshold = 10)
     {
         // Đếm số biến thể có tồn kho dưới mức quy định
-        return ProductVariant::where('stock_qty', '<=', $threshold)->count();
+        return ProductVariant::where('stock_qty', '<', $threshold)->count();
     }
 
     public function getTopSellingProducts(int $limit = 5)

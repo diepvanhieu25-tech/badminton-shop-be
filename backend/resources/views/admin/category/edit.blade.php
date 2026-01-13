@@ -32,34 +32,50 @@
                 @error('name')<div class="mt-1 text-sm text-rose-600 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> {{ $message }}</div>@enderror
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Hình ảnh mới</label>
-                    <input type="file" name="image_url" accept="image/*"
-                           class="block w-full text-sm text-slate-500
-                                  file:mr-4 file:py-2.5 file:px-4
-                                  file:rounded-xl file:border-0
-                                  file:text-sm file:font-semibold
-                                  file:bg-emerald-50 file:text-emerald-700
-                                  hover:file:bg-emerald-100
-                                  cursor-pointer border border-slate-200 rounded-xl bg-white">
-                    <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
-                        <i class="fa-solid fa-circle-info"></i> Để trống nếu không muốn thay đổi ảnh.
-                    </div>
-                </div>
-
-                @if($category->image_url)
-                <div>
-                    <label class="block text-sm font-semibold text-slate-700 mb-2">Ảnh hiện tại</label>
-                    <div class="flex items-center gap-3 p-2 border border-slate-200 rounded-xl bg-slate-50 w-fit">
-                        <img src="{{ Storage::url($category->image_url) }}" class="h-16 w-16 object-cover rounded-lg bg-white border border-slate-200">
-                        <div class="text-xs text-slate-500 pr-2">
-                            <div class="font-medium text-slate-700">Logo cũ</div>
-                            <div>Sẽ bị thay thế nếu upload mới</div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Hình ảnh</label>
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                    {{-- Cột 1: Input --}}
+                    <div class="flex-1">
+                        <input type="file" 
+                               id="image_input"
+                               name="image_url" 
+                               accept="image/*"
+                               onchange="previewImage(event)"
+                               class="block w-full text-sm text-slate-500
+                                      file:mr-4 file:py-2.5 file:px-4
+                                      file:rounded-xl file:border-0
+                                      file:text-sm file:font-semibold
+                                      file:bg-emerald-50 file:text-emerald-700
+                                      hover:file:bg-emerald-100
+                                      cursor-pointer border border-slate-200 rounded-xl bg-white">
+                        
+                        <div class="mt-2 text-xs text-slate-500 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info"></i> Để trống nếu không muốn thay đổi ảnh.
                         </div>
+                         @error('image_url')<div class="mt-1 text-sm text-rose-600">{{ $message }}</div>@enderror
+                    </div>
+
+                    {{-- Cột 2: Preview (Hiển thị ảnh cũ hoặc ảnh mới chọn) --}}
+                    <div class="relative" id="preview_container">
+                        {{-- Logic: Luôn hiện thẻ IMG, nếu có ảnh cũ thì src=ảnh cũ, chưa có thì ẩn src --}}
+                        @if($category->image_url)
+                            <img id="preview_img" 
+                                 src="{{ Storage::url($category->image_url) }}" 
+                                 class="h-24 w-24 object-cover rounded-xl border border-slate-200 shadow-sm bg-white">
+                            <p id="preview_label" class="text-xs text-center text-slate-500 mt-2">Ảnh hiện tại</p>
+                        @else
+                            {{-- Placeholder khi chưa có ảnh --}}
+                            <div id="no_image_placeholder" class="h-24 w-24 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
+                                <i class="fa-regular fa-image text-2xl"></i>
+                            </div>
+                            {{-- Thẻ img ẩn sẵn để chờ JS kích hoạt --}}
+                            <img id="preview_img" src="" class="hidden h-24 w-24 object-cover rounded-xl border border-slate-200 shadow-sm bg-white">
+                            <p id="preview_label" class="hidden text-xs text-center text-emerald-600 mt-2 font-medium">Ảnh mới</p>
+                        @endif
                     </div>
                 </div>
-                @endif
             </div>
 
             <div>
@@ -101,3 +117,34 @@
     </div>
 </div>
 @endsection
+
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const img = document.getElementById('preview_img');
+        const label = document.getElementById('preview_label');
+        const placeholder = document.getElementById('no_image_placeholder');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // 1. Ẩn placeholder nếu có
+                if(placeholder) placeholder.classList.add('hidden');
+                
+                // 2. Cập nhật src cho ảnh và hiện ảnh
+                img.src = e.target.result;
+                img.classList.remove('hidden'); // Đảm bảo ảnh hiện lên
+                
+                // 3. Đổi text chú thích
+                if(label) {
+                    label.textContent = "Ảnh mới chọn";
+                    label.classList.remove('hidden');
+                    label.classList.add('text-emerald-600', 'font-medium');
+                }
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>

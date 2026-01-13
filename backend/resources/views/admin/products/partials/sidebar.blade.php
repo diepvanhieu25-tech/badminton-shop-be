@@ -61,18 +61,53 @@
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6">
         <h4 class="font-semibold text-slate-800 mb-4">Ảnh đại diện</h4>
         
+        {{-- Container ảnh --}}
         <div class="w-full aspect-square bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg flex items-center justify-center overflow-hidden relative group">
-             @if($isEdit && !empty($product->thumbnail))
-                <img src="{{ Storage::url($product->thumbnail) }}" class="w-full h-full object-cover">
-             @else
-                <span class="text-slate-400 text-sm">Chưa có ảnh</span>
-             @endif
+            
+            {{-- 1. Thẻ IMG: Luôn tồn tại trong DOM. Nếu chưa có ảnh thì ẩn đi (hidden), có rồi thì hiện. --}}
+            <img id="thumbnail_preview" 
+                 src="{{ ($isEdit && !empty($product->thumbnail)) ? Storage::url($product->thumbnail) : '' }}" 
+                 class="w-full h-full object-cover absolute inset-0 z-0 {{ ($isEdit && !empty($product->thumbnail)) ? '' : 'hidden' }}">
+
+            {{-- 2. Placeholder Text: Nếu chưa có ảnh thì hiện, có ảnh rồi thì ẩn (hidden). --}}
+            <span id="thumbnail_placeholder" class="text-slate-400 text-sm {{ ($isEdit && !empty($product->thumbnail)) ? 'hidden' : '' }}">
+                Chưa có ảnh
+            </span>
              
-             <input type="file" name="thumbnail" accept="image/*" 
-                    class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-20">
-             <div class="absolute inset-0 bg-black/40 items-center justify-center hidden group-hover:flex z-10 transition-all">
+            {{-- 3. Input File: Thêm sự kiện onchange --}}
+            <input type="file" 
+                   name="thumbnail" 
+                   accept="image/*" 
+                   onchange="previewThumbnail(event)"
+                   class="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-20">
+
+            {{-- 4. Overlay khi hover (để báo hiệu có thể click thay đổi) --}}
+            <div class="absolute inset-0 bg-black/40 items-center justify-center hidden group-hover:flex z-10 transition-all pointer-events-none">
                  <span class="text-white text-sm font-medium">Thay đổi</span>
-             </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function previewThumbnail(event) {
+        const input = event.target;
+        const preview = document.getElementById('thumbnail_preview');
+        const placeholder = document.getElementById('thumbnail_placeholder');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                // Gán đường dẫn ảnh blob vào src
+                preview.src = e.target.result;
+                // Hiển thị ảnh
+                preview.classList.remove('hidden');
+                // Ẩn dòng chữ "Chưa có ảnh"
+                placeholder.classList.add('hidden');
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
