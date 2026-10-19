@@ -11,8 +11,8 @@
             @foreach($topProducts as $product)
             <div class="flex items-center gap-4 group">
                 <div class="w-12 h-12 rounded-lg bg-slate-100 flex-shrink-0 overflow-hidden border border-slate-100">
-                    @if($product->thumbnail)
-                        <img src="{{ Storage::url($product->thumbnail) }}" class="w-full h-full object-cover group-hover:scale-105 transition">
+                    @if($product->thumbnail_url)
+                        <img src="{{ $product->thumbnail_url }}" class="w-full h-full object-cover group-hover:scale-105 transition">
                     @else
                         <div class="w-full h-full flex items-center justify-center text-slate-300">
                             <i class="fa-solid fa-image"></i>

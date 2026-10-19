@@ -67,7 +67,8 @@ class ProductRepository implements ProductRepositoryInterface
     // 3. Lấy sản phẩm liên quan
     public function getRelated(int $currentId, int $categoryId, int $limit = 4)
     {
-        return Product::select(['id', 'name', 'thumbnail', 'price', 'original_price', 'category_id'])
+        return Product::select(['id', 'name', 'sku', 'thumbnail', 'price', 'original_price', 'category_id', 'brand_id', 'is_featured'])
+            ->with(['category:id,name', 'brand:id,name'])
             ->where('status', 'active')
             ->where('category_id', $categoryId)
             ->where('id', '!=', $currentId) // Trừ chính nó ra

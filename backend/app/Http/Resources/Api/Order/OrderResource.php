@@ -28,9 +28,11 @@ class OrderResource extends JsonResource
                 'color' => $this->status->color(),     // 'warning'
             ],
             'payment'          => [
-                'method' => $this->payment_method->label(), // 'Ví VNPay'
-                'status' => $this->payment_status->value,   // 'unpaid'
+                'method_key' => $this->payment_method instanceof \UnitEnum ? $this->payment_method->value : (string) $this->payment_method,
+                'method'     => $this->payment_method instanceof \App\Enums\PaymentMethod ? $this->payment_method->label() : (string) $this->payment_method,
+                'status'     => $this->payment_status instanceof \UnitEnum ? $this->payment_status->value : (string) $this->payment_status,
             ],
+            'payment_method'   => $this->payment_method instanceof \UnitEnum ? $this->payment_method->value : (string) $this->payment_method,
             'created_at'       => $this->created_at->format('d/m/Y H:i'),
             'items'         => OrderItemResource::collection($this->whenLoaded('items')),
         ];

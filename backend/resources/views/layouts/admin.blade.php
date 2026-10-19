@@ -7,7 +7,6 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body class="bg-slate-100 text-slate-800 antialiased">
@@ -23,9 +22,9 @@
 
                 @if (session('success'))
                     <div class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-800">
-                        <div class="flex items-start gap-3">
-                            <div class="mt-0.5">True</div>
-                            <div class="font-medium">{{ session('success') }}</div>
+                        <div class="flex items-center gap-2.5">
+                            <i class="fa-solid fa-circle-check text-emerald-600 text-lg"></i>
+                            <div class="font-medium text-sm">{{ session('success') }}</div>
                         </div>
                     </div>
                 @endif

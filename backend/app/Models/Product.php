@@ -56,4 +56,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
     }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        if (!$this->thumbnail) {
+            return null;
+        }
+        return filter_var($this->thumbnail, FILTER_VALIDATE_URL)
+            ? $this->thumbnail
+            : \Illuminate\Support\Facades\Storage::url($this->thumbnail);
+    }
 }

@@ -1,6 +1,15 @@
 @php
     // Lấy thuộc tính từ JSON hoặc mảng
     $attr = is_string($v->attributes) ? json_decode($v->attributes, true) : ($v->attributes ?? []);
+    if (isset($attr[0]) && is_array($attr[0])) {
+        $temp = [];
+        foreach ($attr as $a) {
+            if (isset($a['code'])) $temp[$a['code']] = $a['value'] ?? '';
+        }
+        $attr = $temp;
+    }
+    $val1 = $attr['weight'] ?? $attr['size'] ?? '';
+    $val2 = $attr['grip'] ?? $attr['color'] ?? '';
 @endphp
 
 <tr class="variant-row bg-white hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
@@ -11,7 +20,7 @@
             
             {{-- Hiển thị ảnh nếu đã có (khi Edit) --}}
             @php
-                $imgUrl = $v->image ? Storage::url($v->image) : null;
+                $imgUrl = $v->image_url ?? ($v->image ? (filter_var($v->image, FILTER_VALIDATE_URL) ? $v->image : Storage::url($v->image)) : null);
             @endphp
 
             <img src="{{ $imgUrl }}" 
@@ -39,16 +48,16 @@
                class="w-full bg-slate-100 border-slate-200 rounded px-2 py-1.5 text-xs font-mono variant-sku text-slate-500 cursor-not-allowed focus:ring-0">
     </td>
 
-    {{-- Attributes (Size/Color) --}}
+    {{-- Attributes (Weight/Grip hoặc Size/Color) --}}
     <td class="px-4 py-3 align-top space-y-2">
         <div class="flex gap-2">
-            <input class="w-1/2 border-slate-300 rounded px-2 py-1.5 text-xs variant-size focus:ring-blue-500 focus:border-blue-500"
-                   value="{{ $attr['size'] ?? '' }}" 
-                   placeholder="Size (40)">
+            <input class="w-1/2 border-slate-300 rounded px-2 py-1.5 text-xs variant-size focus:ring-emerald-500 focus:border-emerald-500"
+                   value="{{ $val1 }}" 
+                   placeholder="Trọng lượng (4U) / Size (41)">
                    
-            <input class="w-1/2 border-slate-300 rounded px-2 py-1.5 text-xs variant-color focus:ring-blue-500 focus:border-blue-500"
-                   value="{{ $attr['color'] ?? '' }}" 
-                   placeholder="Màu (Đen)">
+            <input class="w-1/2 border-slate-300 rounded px-2 py-1.5 text-xs variant-color focus:ring-emerald-500 focus:border-emerald-500"
+                   value="{{ $val2 }}" 
+                   placeholder="Cán (G5) / Màu sắc">
         </div>
         
         {{-- Hidden Input JSON để JS cập nhật --}}

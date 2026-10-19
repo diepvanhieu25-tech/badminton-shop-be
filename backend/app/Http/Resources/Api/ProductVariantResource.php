@@ -17,7 +17,9 @@ class ProductVariantResource extends JsonResource
             'price'          => (float) $this->price,
             'original_price' => (float) $this->original_price,
             'stock_qty'      => (int) $this->stock_qty,
-            'image'          => $this->image ? asset($this->image) : null,
+            'image'          => $this->image 
+                ? (filter_var($this->image, FILTER_VALIDATE_URL) ? $this->image : asset(\Illuminate\Support\Facades\Storage::url($this->image))) 
+                : null,
         ];
     }
 }

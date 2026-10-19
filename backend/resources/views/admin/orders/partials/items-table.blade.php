@@ -24,26 +24,19 @@
                                 <div
                                     class="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden relative group">
                                     @php
-                                        $imgUrl = null;
+                                        $resolveImg = function($path) {
+                                            if (!$path) return null;
+                                            return filter_var($path, FILTER_VALIDATE_URL) ? $path : Storage::url($path);
+                                        };
 
-                                        // Kiểm tra xem Item có Variant không (đề phòng variant bị xóa cứng)
+                                        $imgUrl = null;
                                         if ($item->variant) {
-                                            // Ưu tiên 1: Ảnh riêng của Variant (cột 'image' trong bảng product_variants)
                                             if ($item->variant->image) {
-                                                $imgUrl = Storage::url($item->variant->image);
-                                            }
-                                            // Ưu tiên 2: Ảnh Thumbnail của Product Cha (đi qua quan hệ variant->product)
-                                            elseif ($item->variant->product && $item->variant->product->thumbnail) {
-                                                $imgUrl = Storage::url($item->variant->product->thumbnail);
-                                            }
-                                            // Ưu tiên 3: Ảnh đầu tiên trong Gallery của Product Cha
-                                            elseif (
-                                                $item->variant->product &&
-                                                $item->variant->product->images->count() > 0
-                                            ) {
-                                                $imgUrl = Storage::url(
-                                                    $item->variant->product->images->first()->image_url,
-                                                );
+                                                $imgUrl = $resolveImg($item->variant->image);
+                                            } elseif ($item->variant->product && $item->variant->product->thumbnail) {
+                                                $imgUrl = $resolveImg($item->variant->product->thumbnail);
+                                            } elseif ($item->variant->product && $item->variant->product->images->count() > 0) {
+                                                $imgUrl = $resolveImg($item->variant->product->images->first()->image_url);
                                             }
                                         }
                                     @endphp
@@ -56,8 +49,19 @@
                                 </div>
                                 <div>
                                     <p class="font-medium text-slate-900 line-clamp-2">{{ $item->product_name }}</p>
-                                    <p class="text-xs text-slate-500 mt-1">Phân loại:
-                                        {{ $item->variant_name ?? 'Mặc định' }}</p>
+                                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                                        <span class="text-xs text-slate-500">Mã: <strong class="text-slate-700 font-mono">{{ $item->variant_name ?? 'Mặc định' }}</strong></span>
+                                        @php
+                                            $attrs = $item->attributes ?? ($item->variant?->attributes ?? []);
+                                        @endphp
+                                        @if (!empty($attrs) && is_array($attrs))
+                                            @foreach ($attrs as $k => $v)
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                                    {{ strtoupper($k) }}: {{ is_array($v) ? json_encode($v) : $v }}
+                                                </span>
+                                            @endforeach
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         </td>

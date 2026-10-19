@@ -94,8 +94,7 @@
             <tbody>
             @forelse($products as $product)
                 @php
-                    // Logic xử lý ảnh (Nên đưa vào Model Accessor: getThumbnailUrlAttribute)
-                    $thumb = $product->thumbnail ? Storage::url($product->thumbnail) : ($product->images->first()?->image_url);
+                    $thumb = $product->thumbnail_url ?: ($product->images->first()?->resolved_url);
                     
                     // Logic xử lý giá
                     $displayPrice = $product->variants->isNotEmpty() ? $product->variants->min('price') : $product->price;

@@ -42,21 +42,23 @@ class PaymentController extends Controller
 
     public function vnpayCallback(Request $request)
     {
+        $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $orderCode = $request->input('vnp_TxnRef', '');
+
         try {
             $result = $this->vnpayService->handlePaymentCallback($request->all());
+            $orderCode = $result['order_code'] ?? $orderCode;
 
-            $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
-
-            $orderCode = $result['order_code'] ?? '';
             if ($result['success']) {
-                return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}");
+                return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}&payment=vnpay_success");
             } else {
-                $message = urlencode($result['message'] ?? 'Thanh toán thất bại');
-                return redirect("{$frontendBaseUrl}/order-failed?message={$message}&code={$orderCode}");
+                $message = urlencode($result['message'] ?? 'Thanh toán thất bại hoặc đã bị hủy');
+                return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}&payment=vnpay_failed&msg={$message}");
             }
         } catch (\Exception $e) {
-            $frontendBaseUrl = env('FRONTEND_URL', 'http://localhost:3000');
-            return redirect("{$frontendBaseUrl}/order-failed?message=" . urlencode('Lỗi hệ thống xử lý') . "&code={$orderCode}");
+            \Illuminate\Support\Facades\Log::error('VNPay Callback Exception: ' . $e->getMessage());
+            $errorMsg = urlencode('Lỗi hệ thống khi xử lý thanh toán: ' . $e->getMessage());
+            return redirect("{$frontendBaseUrl}/order-success?code={$orderCode}&payment=vnpay_failed&msg={$errorMsg}");
         }
     }
 }

@@ -31,4 +31,14 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+        return filter_var($this->image, FILTER_VALIDATE_URL)
+            ? $this->image
+            : \Illuminate\Support\Facades\Storage::url($this->image);
+    }
 }

@@ -64,6 +64,7 @@ class OrderService
                     'product_variant_id' => $item->product_variant_id,
                     'product_name'       => $item->variant->product->name,
                     'variant_name'       => $item->variant->sku,
+                    'attributes'         => $item->variant->attributes,
                     'quantity'           => $item->quantity,
                     'unit_price'         => $item->variant->price,
                     'total_price'        => $item->variant->price * $item->quantity,

@@ -11,7 +11,7 @@
                          id="image-container-{{ $img->id }}">
                         
                         {{-- Ảnh --}}
-                        <img src="{{ Storage::url($img->image_url) }}" 
+                        <img src="{{ $img->resolved_url ?? (filter_var($img->image_url, FILTER_VALIDATE_URL) ? $img->image_url : Storage::url($img->image_url)) }}" 
                              class="w-full h-full object-cover transition-opacity duration-300"
                              id="img-preview-{{ $img->id }}">
 

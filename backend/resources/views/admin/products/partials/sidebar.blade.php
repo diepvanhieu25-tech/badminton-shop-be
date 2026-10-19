@@ -66,7 +66,7 @@
             
             {{-- 1. Thẻ IMG: Luôn tồn tại trong DOM. Nếu chưa có ảnh thì ẩn đi (hidden), có rồi thì hiện. --}}
             <img id="thumbnail_preview" 
-                 src="{{ ($isEdit && !empty($product->thumbnail)) ? Storage::url($product->thumbnail) : '' }}" 
+                 src="{{ ($isEdit && !empty($product->thumbnail)) ? $product->thumbnail_url : '' }}" 
                  class="w-full h-full object-cover absolute inset-0 z-0 {{ ($isEdit && !empty($product->thumbnail)) ? '' : 'hidden' }}">
 
             {{-- 2. Placeholder Text: Nếu chưa có ảnh thì hiện, có ảnh rồi thì ẩn (hidden). --}}

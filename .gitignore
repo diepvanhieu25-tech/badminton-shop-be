@@ -36,10 +36,16 @@ backend/public/build
 backend/public/hot
 
 # =====================
-# Next.js (Phần FE của bạn)
+# Next.js (Sports Ecommerce FE)
 # =====================
-frontend/node_modules/
-frontend/.next/
-frontend/.env.local
-frontend/.env.production
-frontend/build/
+sports-ecommerce/node_modules/
+sports-ecommerce/.next/
+sports-ecommerce/.env*
+!sports-ecommerce/.env.example
+sports-ecommerce/build/
+sports-ecommerce/out/
+
+# =====================
+# Agent / Dev Memory
+# =====================
+.direwolf_memory/

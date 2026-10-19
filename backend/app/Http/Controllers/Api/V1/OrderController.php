@@ -19,7 +19,10 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $userId = Auth::id() ?? 1;
+            $userId = Auth::id();
+            if (!$userId) {
+                return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+            }
             $limit = $request->get('limit', 10);
 
             $orders = $this->orderService->getMyOrders($userId, $limit);
@@ -37,7 +40,10 @@ class OrderController extends Controller
     public function show($code): JsonResponse
     {
         try {
-            $userId = Auth::id() ?? 1;
+            $userId = Auth::id();
+            if (!$userId) {
+                return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+            }
 
             $order = $this->orderService->getMyOrderDetail($userId, $code);
 
@@ -54,7 +60,10 @@ class OrderController extends Controller
     public function store(StoreOrderRequest $request): JsonResponse
     {
         try {
-            $userId = Auth::id() ?? 1; // Hardcode id=1 nếu đang test tắt auth
+            $userId = Auth::id();
+            if (!$userId) {
+                return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+            }
 
             $order = $this->orderService->createOrder($userId, $request->validated());
 
@@ -73,7 +82,10 @@ class OrderController extends Controller
     public function cancel($code): JsonResponse
     {
         try {
-            $userId = Auth::id() ?? 1; // Hardcode test nếu tắt Auth
+            $userId = Auth::id();
+            if (!$userId) {
+                return response()->json(['status' => false, 'message' => 'Unauthenticated.'], 401);
+            }
             
             $order = $this->orderService->cancelOrder($userId, $code);
 

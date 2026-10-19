@@ -55,7 +55,7 @@
                         <td class="px-6 py-6 align-middle">
                             <div class="flex justify-center">
                                 @if($item->image_url)
-                                    <img src="{{ Storage::url($item->image_url) }}" 
+                                    <img src="{{ filter_var($item->image_url, FILTER_VALIDATE_URL) ? $item->image_url : Storage::url($item->image_url) }}" 
                                          alt="{{ $item->name }}" 
                                          class="h-20 w-20 rounded-xl object-cover border-2 border-slate-200 bg-white shadow-sm">
                                 @else

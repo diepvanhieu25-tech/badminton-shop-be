@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;;
+use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\Admin\ProductService;
 use App\Http\Requests\Admin\product\ProductFilterRequest;

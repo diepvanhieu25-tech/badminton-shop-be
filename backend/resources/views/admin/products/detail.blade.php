@@ -19,9 +19,8 @@
         ? $product->variants->sum('stock_qty') 
         : 0; // Hoặc $product->stock nếu không dùng variants
         
-    $mainImage = $product->thumbnail 
-        ? Storage::url($product->thumbnail) 
-        : ($product->images->first()?->image_url ? asset($product->images->first()->image_url) : null);
+    $mainImage = $product->thumbnail_url 
+        ?: ($product->images->first()?->resolved_url);
 @endphp
 
 {{-- HEADER --}}
@@ -77,16 +76,16 @@
 
                 {{-- List ảnh nhỏ --}}
                 <div class="w-full md:w-1/3 grid grid-cols-4 md:grid-cols-2 gap-2 h-fit">
-                    @if($product->thumbnail)
-                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-blue-500 overflow-hidden" 
-                             onclick="changeImage('{{ Storage::url($product->thumbnail) }}')">
-                             <img src="{{ Storage::url($product->thumbnail) }}" class="w-full h-full object-cover">
+                    @if($product->thumbnail_url)
+                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-emerald-500 overflow-hidden" 
+                             onclick="changeImage('{{ $product->thumbnail_url }}')">
+                             <img src="{{ $product->thumbnail_url }}" class="w-full h-full object-cover">
                         </div>
                     @endif
                     @foreach($product->images as $img)
-                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-blue-500 overflow-hidden"
-                             onclick="changeImage('{{ Storage::url($img->image_url) }}')">
-                            <img src="{{ Storage::url($img->image_url) }}" class="w-full h-full object-cover">
+                        <div class="aspect-square rounded border cursor-pointer hover:ring-2 ring-emerald-500 overflow-hidden"
+                             onclick="changeImage('{{ $img->resolved_url }}')">
+                            <img src="{{ $img->resolved_url }}" class="w-full h-full object-cover">
                         </div>
                     @endforeach
                 </div>

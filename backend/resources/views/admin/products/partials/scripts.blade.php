@@ -18,18 +18,34 @@
             });
         }
 
-        // B. Build JSON từ Size/Color
+        // B. Build JSON từ Size/Color/Weight/Grip
         function buildAttributes(row) {
-            const size = row.querySelector('.variant-size')?.value;
-            const color = row.querySelector('.variant-color')?.value;
+            const val1 = row.querySelector('.variant-size')?.value?.trim();
+            const val2 = row.querySelector('.variant-color')?.value?.trim();
             const jsonInput = row.querySelector('.variant-attributes-json');
 
             const obj = {};
-            if (size) obj.size = size;
-            if (color) obj.color = color;
+            if (val1) {
+                // Nhận diện chuẩn vợt (3U, 4U, 5U) hoặc size giày (40, 41)
+                if (/^[0-9]U$/i.test(val1)) {
+                    obj.weight = val1.toUpperCase();
+                } else if (!isNaN(val1)) {
+                    obj.size = val1;
+                } else {
+                    obj.size = val1;
+                }
+            }
+            if (val2) {
+                // Nhận diện chuẩn cán vợt (G4, G5, G6) hoặc màu sắc (Navy, Đen)
+                if (/^G[0-9]$/i.test(val2)) {
+                    obj.grip = val2.toUpperCase();
+                } else {
+                    obj.color = val2;
+                }
+            }
 
             // Xóa rỗng nếu không có dữ liệu
-            if (!size && !color) {
+            if (Object.keys(obj).length === 0) {
                 jsonInput.value = '';
             } else {
                 jsonInput.value = JSON.stringify(obj);

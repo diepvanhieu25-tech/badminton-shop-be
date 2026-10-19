@@ -10,7 +10,17 @@
         <div class="space-y-3 text-sm">
             <div class="flex justify-between py-2 border-b border-slate-50">
                 <span class="text-slate-500">Phương thức</span>
-                <span class="font-medium uppercase">{{ $order->payment_method ?? 'COD' }}</span>
+                @php
+                    $methodVal = $order->payment_method instanceof \UnitEnum ? $order->payment_method->value : ($order->payment_method ?? 'cod');
+                    $methodLabel = match($methodVal) {
+                        'cod' => 'Thanh toán COD',
+                        'vnpay' => 'Ví VNPay',
+                        'momo' => 'Ví MoMo',
+                        'bank_transfer' => 'Chuyển khoản VietQR',
+                        default => strtoupper($methodVal)
+                    };
+                @endphp
+                <span class="font-semibold text-slate-800">{{ $methodLabel }}</span>
             </div>
             <div class="flex justify-between py-2 border-b border-slate-50">
                 <span class="text-slate-500">Trạng thái</span>

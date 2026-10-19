@@ -4,8 +4,8 @@
             <i class="fa-solid fa-feather text-xl"></i>
         </div>
         <div>
-            <div class="font-bold text-lg leading-5 text-slate-800">Badminton Pro</div>
-            <div class="text-xs text-slate-500 font-medium mt-0.5">Quản trị cửa hàng</div>
+            <div class="font-bold text-lg leading-5 text-slate-800">DSPORT NEXUS</div>
+            <div class="text-xs text-slate-500 font-medium mt-0.5">Quản trị cửa hàng thể thao</div>
         </div>
     </div>
 

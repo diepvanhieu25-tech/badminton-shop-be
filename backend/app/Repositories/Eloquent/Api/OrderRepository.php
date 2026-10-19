@@ -62,29 +62,58 @@ class OrderRepository implements OrderRepositoryInterface
         $order = Order::where('code', $orderCode)->first();
         if (!$order) return null;
 
+        $isSuccess = ($status === PaymentStatus::SUCCESS->value || $status === PaymentStatus::PAID->value || $status === 'paid' || $status === 'success');
+
         // Cập nhật Order & Payment
-        if ($status === PaymentStatus::SUCCESS->value) {
+        if ($isSuccess) {
             $order->update([
                 'payment_status' => PaymentStatus::PAID,
-                'status'         => OrderStatus::PROCESSING // Đã trả tiền thì chuyển sang xử lý luôn
+                'status'         => OrderStatus::PROCESSING, // Đã trả tiền thì chuyển sang xử lý luôn
             ]);
 
-            // Cập nhật bảng Payment chính
-            $order->payment()->update([
-                'status' => PaymentStatus::SUCCESS, // Status của Payment Transaction
-                'paid_at' => now(),
-                'transaction_id' => $paymentData['transaction_code'] ?? null
+            $payment = $order->payment ?? $order->payment()->first();
+            if (!$payment) {
+                $payment = $order->payment()->create([
+                    'amount'         => $paymentData['amount'] ?? $order->total,
+                    'provider'       => $order->payment_method ?? 'vnpay',
+                    'status'         => PaymentStatus::SUCCESS,
+                    'paid_at'        => now(),
+                    'transaction_id' => $paymentData['transaction_code'] ?? ('VNP-' . time()),
+                ]);
+            } else {
+                $payment->update([
+                    'status'         => PaymentStatus::SUCCESS,
+                    'paid_at'        => now(),
+                    'transaction_id' => $paymentData['transaction_code'] ?? $payment->transaction_id ?? ('VNP-' . time()),
+                ]);
+            }
+        } else {
+            $order->update([
+                'payment_status' => PaymentStatus::FAILED,
             ]);
+
+            $payment = $order->payment ?? $order->payment()->first();
+            if ($payment) {
+                $payment->update([
+                    'status' => PaymentStatus::FAILED,
+                ]);
+            }
         }
 
-        // Lưu lịch sử giao dịch (Quan trọng để đối soát)
-        // Giả sử Payment model có quan hệ transactions()
-        $order->payment->transactions()->create([
-            'transaction_code' => $paymentData['transaction_code'] ?? null,
-            'status'           => $status,
-            'amount'           => $paymentData['amount'] ?? 0,
-            'raw_data'         => $paymentData['raw_data'] ?? [],
-        ]);
+        // Lưu lịch sử giao dịch nếu có quan hệ transactions
+        try {
+            $payment = $order->payment ?? $order->payment()->first();
+            if ($payment && method_exists($payment, 'transactions')) {
+                $payment->transactions()->create([
+                    'transaction_code' => $paymentData['transaction_code'] ?? null,
+                    'status'           => $status,
+                    'amount'           => $paymentData['amount'] ?? $order->total,
+                    'raw_data'         => $paymentData['raw_data'] ?? [],
+                ]);
+            }
+        } catch (\Throwable $t) {
+            \Illuminate\Support\Facades\Log::warning('Không thể lưu transaction log: ' . $t->getMessage());
+        }
 
         return $order;
     }

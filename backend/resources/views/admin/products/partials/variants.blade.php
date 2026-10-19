@@ -54,8 +54,8 @@
         </td>
         <td class="px-4 py-2 align-top space-y-2">
             <div class="flex gap-2">
-                <input class="w-1/2 border-slate-300 rounded px-2 py-1 text-xs variant-size" placeholder="Size (VD: 40)">
-                <input class="w-1/2 border-slate-300 rounded px-2 py-1 text-xs variant-color" placeholder="Màu (VD: Đen)">
+                <input class="w-1/2 border-slate-300 rounded px-2 py-1 text-xs variant-size" placeholder="Trọng lượng (4U) / Size (41)">
+                <input class="w-1/2 border-slate-300 rounded px-2 py-1 text-xs variant-color" placeholder="Cán (G5) / Màu sắc">
             </div>
             <input type="hidden" name="variants[INDEX][attributes_json]" class="variant-attributes-json">
         </td>

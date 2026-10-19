@@ -19,9 +19,18 @@ return Application::configure(basePath: dirname(__DIR__))
             AttachTokenFromCookie::class,
         ]);
         $middleware->alias([
-        'admin' => AdminMiddleware::class,
-    ]);
+            'admin' => AdminMiddleware::class,
+        ]);
+        $middleware->redirectGuestsTo(fn ($request) => $request->is('api/*') ? null : '/admin/login');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Unauthenticated.'
+                ], 401);
+            }
+            return redirect()->guest('/admin/login');
+        });
     })->create();

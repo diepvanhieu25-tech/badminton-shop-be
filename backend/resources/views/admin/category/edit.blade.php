@@ -62,7 +62,7 @@
                         {{-- Logic: Luôn hiện thẻ IMG, nếu có ảnh cũ thì src=ảnh cũ, chưa có thì ẩn src --}}
                         @if($category->image_url)
                             <img id="preview_img" 
-                                 src="{{ Storage::url($category->image_url) }}" 
+                                 src="{{ filter_var($category->image_url, FILTER_VALIDATE_URL) ? $category->image_url : Storage::url($category->image_url) }}" 
                                  class="h-24 w-24 object-cover rounded-xl border border-slate-200 shadow-sm bg-white">
                             <p id="preview_label" class="text-xs text-center text-slate-500 mt-2">Ảnh hiện tại</p>
                         @else
